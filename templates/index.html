@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <title>PREDICTION MODEL</title>
+
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 30px;
+        }
+
+        .button {
+            padding: 15px 30px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            text-align: center;
+            text-decoration: none;
+            margin-bottom: 15px;
+            transition: background-color 0.3s ease;
+        }
+
+        .manual-button {
+            background-color: #3498db;
+        }
+
+        .csv-button {
+            background-color: #27ae60;
+        }
+
+        .button:hover {
+            filter: brightness(90%);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <h1>AI Model Prediction</h1>
+
+        <div class="button-container">
+            <a href="/manual_input" class="button manual-button">Manual Input</a>
+            <a href="/csv_upload" class="button csv-button">Import CSV</a>
+        </div>
+
+    </div>
+</body>
+</html>
