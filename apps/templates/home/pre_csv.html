@@ -3,7 +3,47 @@
 {% block title %} Tables {% endblock %} 
 
 <!-- Specific Page CSS goes HERE  -->
-{% block stylesheets %}{% endblock stylesheets %}
+{% block stylesheets %}
+<style>
+    .attribute-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        font-size: 12px;
+    }
+
+    .attribute-table th, .attribute-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+        font-size: 12px;
+    }
+
+    .attribute-table th {
+        background-color: #f2f2f2;
+    }
+
+    .attribute-table ul {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .attribute-table li {
+        margin-bottom: 5px;
+        font-size: 12px;
+    }
+
+    .example td,
+    .example th {
+        font-size: 10px;
+        color: gray;
+    }
+
+
+</style>
+
+{% endblock stylesheets %}
 
 {% block content %}
 
@@ -42,6 +82,164 @@
         </form>
       </div>
   </div>
+
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+    Categorical Data
+</button>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Categorical Data</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <table class="attribute-table">
+                <tr>
+                    <th>Attribute</th>
+                    <th>Values</th>
+                </tr>
+                <tr>
+                    <td><b>Female_Y</b></td>
+                    <td>
+                        <ul>
+                            <li>Yes: 1</li>
+                            <li>No: 0</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><b>Nature_of_Business</b></td>
+                    <td>
+                        <ul>
+                            <li>Accommodation & Food Service Activities</li>
+                            <li>Administrative and Support Service Activities</li>
+                            <li>Agriculture, Forestry and Fishing</li>
+                            <li>Arts, Entertainment and Recreation</li>
+                            <li>Construction</li>
+                            <li>Education</li>
+                            <li>Financial and Insurance/Takaful Activities</li>
+                            <li>Human Health and Social Work Activities</li>
+                            <li>Manufacturing</li>
+                            <li>Other Service Activities</li>
+                            <li>Professional, Scientific & Technical Activities</li>
+                            <li>Real-Estate Activities</li>
+                            <li>Transportation & Storage</li>
+                            <li>Water, Sewerage & Waste Mgmt & Related Activities</li>
+                            <li>Wholesale & Retail (incl Motor Vehicle Repairs)</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><b>Entity</b></td>
+                    <td>
+                        <ul>
+                            <li>Partnership</li>
+                            <li>Private Limited</li>
+                            <li>Sole Proprietor</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><b>STATE</b></td>
+                    <td>
+                        <ul>
+                            <li>JOHOR</li>
+                            <li>KEDAH</li>
+                            <li>KELANTAN</li>
+                            <li>MELAKA</li>
+                            <li>NEGERI SEMBILAN</li>
+                            <li>PAHANG</li>
+                            <li>PERAK</li>
+                            <li>PERLIS</li>
+                            <li>PULAU PINANG</li>
+                            <li>SABAH</li>
+                            <li>SARAWAK</li>
+                            <li>SELANGOR</li>
+                            <li>TERENGGANU</li>
+                            <li>WILAYAH PERSEKUTUAN</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><b>LOAN_PURPOSE</b></td>
+                    <td>
+                        <ul>
+                            <li>Asset acquisition</li>
+                            <li>Contract financing</li>
+                            <li>Debt consolidation / refinancing</li>
+                            <li>Marketing and advertising</li>
+                            <li>Other business purpose</li>
+                            <li>Purchase of equipment</li>
+                            <li>Upgrading / Renovation</li>
+                            <li>Working Capital</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><b>Race</b></td>
+                    <td>
+                        <ul>
+                            <li>Chinese</li>
+                            <li>Indian</li>
+                            <li>Malay</li>
+                            <li>Others</li>
+                        </ul>
+                    </td>
+                </tr>
+            </table>
+        </div>        
+        <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+        </div>
+    </div>
+    </div>
+    </div>
+    <br>
+    <br>
+
+    <div class="card border-0 shadow">
+        <div class="card-body">
+            Example
+            <div class="table-responsive example" id="Example">
+                <table border="1" class="table table-success table-striped">
+                    <thead>
+                      <tr style="text-align: right;">
+                        <th>APPLICATION_ID</th>
+                        <th>APPLIED_AMOUNT</th>
+                        <th>YIB</th>
+                        <th>Female_Y</th>
+                        <th>Avg_Age_When_apply</th>
+                        <th>Nature_of_Business</th>
+                        <th>Entity</th>
+                        <th>STATE</th>
+                        <th>LOAN_PURPOSE</th>
+                        <th>Race</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>1</td>
+                        <td>60000</td>
+                        <td>7.75</td>
+                        <td>1</td>
+                        <td>46</td>
+                        <td>Construction</td>
+                        <td>Private Limited</td>
+                        <td>WILAYAH PERSEKUTUAN</td>
+                        <td>Working Capital</td>
+                        <td>Malay</td>
+                      </tr>
+                    </tbody>
+                  </table>
+            </div>
+        </div>
+      </div>
+
+      <br>
 
   <div class="card border-0 shadow">
     <div class="loading-overlay" id="loadingOverlay" style="display:none;">

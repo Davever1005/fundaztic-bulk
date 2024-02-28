@@ -213,6 +213,8 @@ def process():
 
     if csv_file.filename == '':
         return jsonify({'error': 'No file selected'})
+    
+    session['continue'] = 'True'
 
     # Process the CSV file
     df = process_csv(csv_file)
@@ -220,6 +222,11 @@ def process():
     table_html = df.to_html(classes='table table-striped', index=False)
 
     return jsonify({'table': table_html})
+
+@blueprint.route('/clear_session', methods=['GET'])
+def clear_session():
+    session.pop('continue', None)
+    return jsonify(success=True)
 
 def process_csv(csv_file):
     global status_data
@@ -307,45 +314,49 @@ def process_csv(csv_file):
     # Initialize an empty DataFrame for the processed data
     processed_data = pd.DataFrame()
 
-
+    i = 0
     for index, row in df.iterrows():
         try:
+            if session['continue'] is None:
+                break
             nan_present = any(pd.isna(element) or element == 'NaN' for element in row)
             if None in row or nan_present:
                 result = "Incomplete data"
             else:
                 result = 'Attempt Failed. Try again.'
+                print(f'{i+1}/{len(df)}')
+                i = i + 1
                 FEATURE_DEFAULTS = {key: 0.0 for key in FEATURE_KEYS}
                 features = FEATURE_DEFAULTS.copy()
-                features.update(zip(FEATURE_KEYS[:18], map(float, [str(item).replace(",", "") for item in row[:18]])))
+                features.update(zip(FEATURE_KEYS[0:18], map(float, [str(item).replace(",", "") for item in row[1:19]])))
 
                 # Update features based on selected options
-                if f'NATURE_OF_BUSINESS_{row[18].replace(" ", "").upper()}' in FEATURE_KEYS:
-                    features[f'NATURE_OF_BUSINESS_{row[18].replace(" ", "").upper()}'] = 1.0
-                else:
-                    result = f'Invalid data: {row[18]}'
-                if f'ENTITY_{row[19].replace(" ", "").upper()}' in FEATURE_KEYS:
-                    features[f'ENTITY_{row[19].replace(" ", "").upper()}'] = 1.0
+                if f'NATURE_OF_BUSINESS_{row[19].replace(" ", "").upper()}' in FEATURE_KEYS:
+                    features[f'NATURE_OF_BUSINESS_{row[19].replace(" ", "").upper()}'] = 1.0
                 else:
                     result = f'Invalid data: {row[19]}'
-                if f'STATE_{row[20].replace(" ", "").upper()}' in FEATURE_KEYS:
-                    features[f'STATE_{row[20].replace(" ", "").upper()}'] = 1.0
+                if f'ENTITY_{row[20].replace(" ", "").upper()}' in FEATURE_KEYS:
+                    features[f'ENTITY_{row[20].replace(" ", "").upper()}'] = 1.0
                 else:
                     result = f'Invalid data: {row[20]}'
-                if f'LOAN_PURPOSE_{row[21].replace(" ", "").upper()}' in FEATURE_KEYS:
-                    features[f'LOAN_PURPOSE_{row[21].replace(" ", "").upper()}'] = 1.0
+                if f'STATE_{row[21].replace(" ", "").upper()}' in FEATURE_KEYS:
+                    features[f'STATE_{row[21].replace(" ", "").upper()}'] = 1.0
                 else:
                     result = f'Invalid data: {row[21]}'
-                if f'FIN_GRADE_{row[22].replace(" ", "").upper()}' in FEATURE_KEYS:
-                    features[f'FIN_GRADE_{row[22].replace(" ", "").upper()}'] = 1.0
+                if f'LOAN_PURPOSE_{row[22].replace(" ", "").upper()}' in FEATURE_KEYS:
+                    features[f'LOAN_PURPOSE_{row[22].replace(" ", "").upper()}'] = 1.0
                 else:
-                    result = f'Invalid data: {row[8]}'
-                if f'RACE_{row[23].replace(" ", "").upper()}' in FEATURE_KEYS:
-                    features[f'RACE_{row[23].replace(" ", "").upper()}'] = 1.0
+                    result = f'Invalid data: {row[22]}'
+                if f'FIN_GRADE_{row[23].replace(" ", "").upper()}' in FEATURE_KEYS:
+                    features[f'FIN_GRADE_{row[23].replace(" ", "").upper()}'] = 1.0
                 else:
                     result = f'Invalid data: {row[23]}'
+                if f'RACE_{row[24].replace(" ", "").upper()}' in FEATURE_KEYS:
+                    features[f'RACE_{row[24].replace(" ", "").upper()}'] = 1.0
+                else:
+                    result = f'Invalid data: {row[24]}'
                 if 'Invalid' not in result:
-
+                    print(features)
                     # Extract numerical values
                     numerical_values = list(features.values())
 
@@ -407,13 +418,13 @@ def process_csv(csv_file):
 @blueprint.route('/download_template')
 def download_template():
     # Create a string with CSV template content
-    template_content = '''INSTALLMENT_TENOR_MONTHS,APPLIED_AMOUNT,APPROVED_AMOUNT,INTEREST_RATE_PA,FINAL_PD,RnR(1forY/0forN),Financing_Amount_Principal,Financing_Amount_Interest,YIB,Female_Y(1forY/0forN),Avg_Age_When_apply,Origination_fee,Total_investors,Avg_investor_investment,Guarantor_invested(1forY/0forN),days_to_disb,Day_disbursed,Day_hosted,Nature_of_Business,Entity,STATE,LOAN_PURPOSE,FIN_GRADE,Race'''
+    template_content = '''APPLICATION_ID, INSTALLMENT_TENOR_MONTHS,APPLIED_AMOUNT,APPROVED_AMOUNT,INTEREST_RATE_PA,FINAL_PD,RnR(1forY/0forN),Financing_Amount_Principal,Financing_Amount_Interest,YIB,Female_Y(1forY/0forN),Avg_Age_When_apply,Origination_fee,Total_investors,Avg_investor_investment,Guarantor_invested(1forY/0forN),days_to_disb,Day_disbursed,Day_hosted,Nature_of_Business,Entity,STATE,LOAN_PURPOSE,FIN_GRADE,Race'''
 
     # Send the file for download
     return send_file(
         BytesIO(template_content.encode()),
         as_attachment=True,
-        download_name='csv_template(all).csv',
+        download_name='csv_template(post).csv',
         mimetype='text/csv'
     )
 
@@ -614,29 +625,29 @@ def pre_process_csv(csv_file):
                 result = 'Attempt Failed. Try again.'
                 FEATURE_DEFAULTS = {key: 0.0 for key in MODIFIED_FEATURE_KEYS}
                 features = FEATURE_DEFAULTS.copy()
-                features.update(zip(MODIFIED_FEATURE_KEYS[:4], map(float, [str(item).replace(",", "") for item in row[:4]])))
+                features.update(zip(MODIFIED_FEATURE_KEYS[:4], map(float, [str(item).replace(",", "") for item in row[1:5]])))
 
                 # Update features based on selected options
-                if f'NATURE_OF_BUSINESS_{row[4].replace(" ", "").upper()}' in MODIFIED_FEATURE_KEYS:
-                    features[f'NATURE_OF_BUSINESS_{row[4].replace(" ", "").upper()}'] = 1.0
-                else:
-                    result = f'Invalid data: {row[4]}'
-                if f'ENTITY_{row[5].replace(" ", "").upper()}' in MODIFIED_FEATURE_KEYS:
-                    features[f'ENTITY_{row[5].replace(" ", "").upper()}'] = 1.0
+                if f'NATURE_OF_BUSINESS_{row[5].replace(" ", "").upper()}' in MODIFIED_FEATURE_KEYS:
+                    features[f'NATURE_OF_BUSINESS_{row[5].replace(" ", "").upper()}'] = 1.0
                 else:
                     result = f'Invalid data: {row[5]}'
-                if f'STATE_{row[6].replace(" ", "").upper()}' in MODIFIED_FEATURE_KEYS:
-                    features[f'STATE_{row[6].replace(" ", "").upper()}'] = 1.0
+                if f'ENTITY_{row[6].replace(" ", "").upper()}' in MODIFIED_FEATURE_KEYS:
+                    features[f'ENTITY_{row[6].replace(" ", "").upper()}'] = 1.0
                 else:
                     result = f'Invalid data: {row[6]}'
-                if f'LOAN_PURPOSE_{row[7].replace(" ", "").upper()}' in MODIFIED_FEATURE_KEYS:
-                    features[f'LOAN_PURPOSE_{row[7].replace(" ", "").upper()}'] = 1.0
+                if f'STATE_{row[7].replace(" ", "").upper()}' in MODIFIED_FEATURE_KEYS:
+                    features[f'STATE_{row[7].replace(" ", "").upper()}'] = 1.0
                 else:
                     result = f'Invalid data: {row[7]}'
-                if f'RACE_{row[8].replace(" ", "").upper()}' in MODIFIED_FEATURE_KEYS:
-                    features[f'RACE_{row[8].replace(" ", "").upper()}'] = 1.0
+                if f'LOAN_PURPOSE_{row[8].replace(" ", "").upper()}' in MODIFIED_FEATURE_KEYS:
+                    features[f'LOAN_PURPOSE_{row[8].replace(" ", "").upper()}'] = 1.0
                 else:
                     result = f'Invalid data: {row[8]}'
+                if f'RACE_{row[9].replace(" ", "").upper()}' in MODIFIED_FEATURE_KEYS:
+                    features[f'RACE_{row[9].replace(" ", "").upper()}'] = 1.0
+                else:
+                    result = f'Invalid data: {row[9]}'
                 if 'Invalid' not in result:
                     # Extract numerical values
                     numerical_values = list(features.values())
@@ -680,12 +691,12 @@ def pre_process_csv(csv_file):
                             print(f"Attempt {attempt} failed. Retrying in {retry_delay} seconds...")
                             time.sleep(retry_delay)
 
-                # Add the result to the row
-                row['Result'] = result
+            # Add the result to the row
+            row['Result'] = result
 
-                # Append the processed row to the DataFrame
-                processed_data = processed_data.append(row, ignore_index=True)
-                session['processed_data'] = processed_data.to_csv(index=False)
+            # Append the processed row to the DataFrame
+            processed_data = processed_data.append(row, ignore_index=True)
+            session['processed_data'] = processed_data.to_csv(index=False)
         except Exception as error:
             print(f"An error occurred: {error}")
             # Set result to 'error' in case of any exception
@@ -699,7 +710,7 @@ def pre_process_csv(csv_file):
 @blueprint.route('/download_pretemplate')
 def download_pretemplate():
     # Create a string with CSV template content
-    template_content = '''APPLIED_AMOUNT,YIB,Female_Y(1ForY/0ForN),Avg_Age_When_apply,Nature_of_Business,Entity,STATE,LOAN_PURPOSE,Race'''
+    template_content = '''APPLICATION_ID,APPLIED_AMOUNT,YIB,Female_Y(1ForY/0ForN),Avg_Age_When_apply,Nature_of_Business,Entity,STATE,LOAN_PURPOSE,Race'''
 
     # Send the file for download
     return send_file(

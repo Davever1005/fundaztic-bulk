@@ -2,10 +2,51 @@
 
 {% block title %} Tables {% endblock %} 
 
+
+
 <!-- Specific Page CSS goes HERE  -->
-{% block stylesheets %}{% endblock stylesheets %}
+{% block stylesheets %}
+<!-- Latest compiled and minified CSS -->
+<style>
+    .attribute-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        font-size: 12px;
+    }
+
+    .attribute-table th, .attribute-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+        font-size: 12px;
+    }
+
+    .attribute-table th {
+        background-color: #f2f2f2;
+    }
+
+    .attribute-table ul {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .attribute-table li {
+        margin-bottom: 5px;
+        font-size: 12px;
+    }
+
+    .example td,
+    .example th {
+        font-size: 10px;
+        color: gray;
+    }
+</style>
+{% endblock stylesheets %}
 
 {% block content %}
+
 
   <div class="py-4">
       <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
@@ -43,6 +84,219 @@
       </div>
   </div>
 
+  <!-- Button trigger modal -->
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+        Categorical Data
+    </button>
+  
+  <!-- Modal -->
+  <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Categorical Data</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <table class="attribute-table">
+                <tr>
+                    <th>Attribute</th>
+                    <th>Values</th>
+                </tr>
+                <tr>
+                    <td><b>Female_Y</b></td>
+                    <td>
+                        <ul>
+                            <li>Yes: 1</li>
+                            <li>No: 0</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><b>Guarantor_invested</b></td>
+                    <td>
+                        <ul>
+                            <li>Yes: 1</li>
+                            <li>No: 0</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><b>Nature_of_Business</b></td>
+                    <td>
+                        <ul>
+                            <li>Accommodation & Food Service Activities</li>
+                            <li>Administrative and Support Service Activities</li>
+                            <li>Agriculture, Forestry and Fishing</li>
+                            <li>Arts, Entertainment and Recreation</li>
+                            <li>Construction</li>
+                            <li>Education</li>
+                            <li>Financial and Insurance/Takaful Activities</li>
+                            <li>Human Health and Social Work Activities</li>
+                            <li>Manufacturing</li>
+                            <li>Other Service Activities</li>
+                            <li>Professional, Scientific & Technical Activities</li>
+                            <li>Real-Estate Activities</li>
+                            <li>Transportation & Storage</li>
+                            <li>Water, Sewerage & Waste Mgmt & Related Activities</li>
+                            <li>Wholesale & Retail (incl Motor Vehicle Repairs)</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><b>Entity</b></td>
+                    <td>
+                        <ul>
+                            <li>Partnership</li>
+                            <li>Private Limited</li>
+                            <li>Sole Proprietor</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><b>STATE</b></td>
+                    <td>
+                        <ul>
+                            <li>JOHOR</li>
+                            <li>KEDAH</li>
+                            <li>KELANTAN</li>
+                            <li>MELAKA</li>
+                            <li>NEGERI SEMBILAN</li>
+                            <li>PAHANG</li>
+                            <li>PERAK</li>
+                            <li>PERLIS</li>
+                            <li>PULAU PINANG</li>
+                            <li>SABAH</li>
+                            <li>SARAWAK</li>
+                            <li>SELANGOR</li>
+                            <li>TERENGGANU</li>
+                            <li>WILAYAH PERSEKUTUAN</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><b>LOAN_PURPOSE</b></td>
+                    <td>
+                        <ul>
+                            <li>Asset acquisition</li>
+                            <li>Contract financing</li>
+                            <li>Debt consolidation / refinancing</li>
+                            <li>Marketing and advertising</li>
+                            <li>Other business purpose</li>
+                            <li>Purchase of equipment</li>
+                            <li>Upgrading / Renovation</li>
+                            <li>Working Capital</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><b>FIN_GRADE</b></td>
+                    <td>
+                        <ul>
+                            <li>A1</li>
+                            <li>A2</li>
+                            <li>B3</li>
+                            <li>B4</li>
+                            <li>C5</li>
+                            <li>C6</li>
+                            <li>D7</li>
+                            <li>D8</li>
+                            <li>X1</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><b>Race</b></td>
+                    <td>
+                        <ul>
+                            <li>Chinese</li>
+                            <li>Indian</li>
+                            <li>Malay</li>
+                            <li>Others</li>
+                        </ul>
+                    </td>
+                </tr>
+            </table>
+        </div>        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <br>
+  <br>
+
+  <div class="card border-0 shadow">
+    <div class="card-body">
+        Example
+        <div class="table-responsive example" id="Example">
+            <table border="1" class="table table-success table-striped">
+                <thead>
+                  <tr style="text-align: right;">
+                    <th>APPLICATION_ID</th>
+                    <th>INSTALLMENT_TENOR_MONTHS</th>
+                    <th>APPLIED_AMOUNT</th>
+                    <th>APPROVED_AMOUNT</th>
+                    <th>INTEREST_RATE_PA</th>
+                    <th>FINAL_PD</th>
+                    <th>RnR</th>
+                    <th>Financing_Amount_Principal</th>
+                    <th>Financing_Amount_Interest</th>
+                    <th>YIB</th>
+                    <th>Female_Y</th>
+                    <th>Avg_Age_When_apply</th>
+                    <th>Origination_fee</th>
+                    <th>Total_investors</th>
+                    <th>Avg_investor_investment</th>
+                    <th>Guarantor_invested</th>
+                    <th>days_to_disb</th>
+                    <th>Day_disbursed</th>
+                    <th>Day_hosted</th>
+                    <th>Nature_of_Business</th>
+                    <th>Entity</th>
+                    <th>STATE</th>
+                    <th>LOAN_PURPOSE</th>
+                    <th>FIN_GRADE</th>
+                    <th>Race</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>1</td>
+                    <td>12</td>
+                    <td>60000</td>
+                    <td>60000</td>
+                    <td>0.1183</td>
+                    <td>5.61</td>
+                    <td>0</td>
+                    <td>60000</td>
+                    <td>7098</td>
+                    <td>7.75</td>
+                    <td>1</td>
+                    <td>46</td>
+                    <td>0.01</td>
+                    <td>192</td>
+                    <td>312.5</td>
+                    <td>1</td>
+                    <td>4.42</td>
+                    <td>21</td>
+                    <td>17</td>
+                    <td>Construction</td>
+                    <td>Private Limited</td>
+                    <td>WILAYAH PERSEKUTUAN</td>
+                    <td>Working Capital</td>
+                    <td>D7</td>
+                    <td>Malay</td>
+                  </tr>
+                </tbody>
+              </table>
+        </div>
+    </div>
+  </div>
+
+  <br>
+
   <div class="card border-0 shadow">
     <div class="loading-overlay" id="loadingOverlay" style="display:none;">
         <div class="spinner-border text-primary" role="status">
@@ -64,18 +318,30 @@
 
 
 <script>
-    // var eventSource;
-    // console.log(eventSource)
+    function clearTableAndSession() {
+        // Clear the table content
+        $('#result').html('');
+
+        // Clear the session['continue'] using an AJAX request to a Flask route
+        $.ajax({
+            url: '/clear_session',
+            type: 'GET',
+            success: function () {
+                console.log('Session cleared.');
+            },
+            error: function (error) {
+                console.log('Error clearing session:', error);
+            }
+        });
+    }
+
     function uploadCSV() {
+        // Call the function to clear the table and session
+        clearTableAndSession();
+
         var formData = new FormData($('#csvUploadForm')[0]);
 
         $('#loadingOverlay').show();
-
-        // // Close the previous EventSource if it exists
-        // if (eventSource) {
-        //     console.log(eventSource)
-        //     eventSource.close();
-        // }
 
         $.ajax({
             url: '/process',
@@ -85,37 +351,32 @@
             processData: false,
             success: function (data) {
                 $('#loadingOverlay').hide();
-                // document.getElementById('status').innerHTML = "Processing complete";
                 $('#result').html(data.table);
                 $('#result').append('<br><button class="result-button"><a href="{{ url_for("authentication_blueprint.download_processed_csv") }}" download>Download Result</a></button>');
-                // data.status = "";
-                // eventSource.close();
             },
             error: function (error) {
                 $('#loadingOverlay').hide();
                 console.log("Error:", error);
             },
             complete: function () {
-                // After the uploadCSV is complete (whether success or error), stop checking progress
-                // This ensures that the progress is no longer checked after processing is done
                 console.log('Processing complete.');
             }
         });
 
-        // // Create a new EventSource
-        // eventSource = new EventSource('/get_status?');
+        var coll = document.getElementsByClassName("collapsible");
+        var i;
 
-        // eventSource.onmessage = function (event) {
-        //     var data = JSON.parse(event.data);
-        //     document.getElementById('status').innerHTML = data.status;
-        // };
-
-        // eventSource.onerror = function (error) {
-        //     console.error("Error:", error);
-
-        //     // Handle error or retry logic if needed
-        // };
-}
+        for (i = 0; i < coll.length; i++) {
+        coll[i].addEventListener("click", function() {
+            this.classList.toggle("active");
+            var content = this.nextElementSibling;
+            if (content.style.display === "block") {
+            content.style.display = "none";
+            } else {
+            content.style.display = "block";
+            }
+        });
+        }
+    }
 </script>
-
 {% endblock javascripts %}
