@@ -2508,7 +2508,7 @@ progress {
   --bs-table-bg: transparent;
   --bs-table-accent-bg: transparent;
   --bs-table-striped-color: #374151;
-  --bs-table-striped-bg: rgba(17, 24, 39, 0.05);
+  --bs-table-striped-bg: transparent;
   --bs-table-active-color: #374151;
   --bs-table-active-bg: rgba(17, 24, 39, 0.1);
   --bs-table-hover-color: #374151;
@@ -2517,9 +2517,61 @@ progress {
   margin-bottom: 1rem;
   color: #374151;
   vertical-align: top;
-  border-color: #E5E7EB; }
+  border-color: #E5E7EB; 
+}
+
+.type {
+  --bs-table-bg: transparent;
+  --bs-table-accent-bg: transparent;
+  --bs-table-striped-color: #374151;
+  --bs-table-striped-bg: transparent;
+  --bs-table-active-color: #374151;
+  --bs-table-active-bg: rgba(17, 24, 39, 0.1);
+  --bs-table-hover-color: #374151;
+  --bs-table-hover-bg: rgba(17, 24, 39, 0.075);
+  width: 100%;
+  margin-bottom: 1rem;
+  color: #374151;
+  vertical-align: top;
+  border-color: #E5E7EB; 
+}
+
+.type > :not(caption) > * > * {
+  padding: 0.45rem 0.2rem;
+  background-color: var(--bs-table-bg);
+  border-bottom-width: 0.0625rem;
+  box-shadow: inset 0 0 0 9999px var(--bs-table-accent-bg); }
+.type > tbody {
+  vertical-align: inherit; }
+.type > thead {
+  vertical-align: bottom; }
+.type > :not(:last-child) > :last-child > * {
+  border-bottom-color: currentColor; }
+
+  .type thead th {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 600;
+    border-top: 0; }
+  
+  .type th {
+    font-weight: 500;
+    padding: 1rem; }
+  
+  .type td .progress {
+    height: 3px;
+    width: 120px;
+    margin: 0; }
+  
+  .type td,
+  .type th {
+    font-size: 1.0rem;
+    white-space: nowrap; }
+
   .table > :not(caption) > * > * {
-    padding: 0.75rem 0.5rem;
+    padding: 0.45rem 0.2rem;
     background-color: var(--bs-table-bg);
     border-bottom-width: 0.0625rem;
     box-shadow: inset 0 0 0 9999px var(--bs-table-accent-bg); }
@@ -5563,7 +5615,8 @@ textarea.form-control-lg {
 
 .pagination {
   display: flex;
-  padding-left: 0;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
   list-style: none; }
 
 .page-link {
@@ -5572,6 +5625,7 @@ textarea.form-control-lg {
   color: #1F2937;
   background-color: #ffffff;
   border: 0.0625rem solid #9CA3AF;
+  font-size: 0.7rem;
   transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out; }
   @media (prefers-reduced-motion: reduce) {
     .page-link {
@@ -5587,6 +5641,10 @@ textarea.form-control-lg {
     background-color: #E5E7EB;
     outline: 0;
     box-shadow: 0 0 0 0.18rem rgba(31, 41, 55, 0.25); }
+
+.active-page{
+  background-color: #FFEED6;
+}
 
 .page-item:not(:first-child) .page-link {
   margin-left: -0.0625rem; }
@@ -18253,7 +18311,7 @@ label {
 
 .table td,
 .table th {
-  font-size: 0.875rem;
+  font-size: 0.7rem;
   white-space: nowrap; }
 
 .table.user-table thead th {
@@ -18298,8 +18356,8 @@ label {
   margin-bottom: 0; }
   .card .table td,
   .card .table th {
-    padding-left: 1.5rem;
-    padding-right: 1.5rem; }
+    padding-left: 1.0rem;
+    padding-right: 1.0rem; }
 
 .table [data-sort] {
   cursor: pointer; }

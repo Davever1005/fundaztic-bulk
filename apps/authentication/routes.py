@@ -25,7 +25,6 @@ from io import BytesIO
 import csv
 from flask import send_file
 from flask import session
-import os
 from flask import jsonify
 from flask import Flask, request, render_template
 from flask_wtf import FlaskForm
@@ -35,7 +34,28 @@ from io import BytesIO
 import base64
 from flask import Response, stream_with_context
 import pickle
-
+import pdfplumber
+import pandas as pd
+from python.MBB import MBB_main
+from python.CIMB import CIMB_main
+from python.HLBB import HLBB_main
+from python.PBB import PBB_main
+from python.RHB import RHB_main
+from python.OCBC import OCBC_main
+from python.AM import AM_main
+from python.Islam import ISLAM_main
+from python.UOB import UOB_main
+from python.summary import summary_main
+from python.chart import plot_to_html_image
+from python.check import check_balance_within_month
+from python.ALLIANCE import ALL_main
+from python.type import type
+from python.repetition import find_repeat
+import re
+import os
+from fuzzywuzzy import fuzz
+from collections import defaultdict
+import calendar
 
 
 @blueprint.route('/')
@@ -356,7 +376,6 @@ def process_csv(csv_file):
                 else:
                     result = f'Invalid data: {row[24]}'
                 if 'Invalid' not in result:
-                    print(features)
                     # Extract numerical values
                     numerical_values = list(features.values())
 
@@ -432,7 +451,6 @@ def download_template():
 def download_processed_csv():
     # Retrieve the processed CSV data from the session
     processed_csv = session.get('processed_data')
-    print(processed_csv)
     if processed_csv:
 
         # Send the file for download
@@ -719,6 +737,171 @@ def download_pretemplate():
         download_name='csv_template(pre).csv',
         mimetype='text/csv'
     )
+
+### OCR
+@blueprint.route('/OCR', methods=['GET', 'POST'])
+def upload_file():
+    file_path = None
+    bank_selected = None  # Initialize the variable
+
+
+    if request.method == 'POST':
+        file = request.files['file']
+        bank_selected = request.form.get('bank')  # Get the selected bank value
+        sort = request.form.get('sort')
+        fz = float(request.form.get('FZ'))
+
+        if file and bank_selected and sort and fz > 0:
+            # Save the uploaded PDF file to the local storage directory
+            file_path = os.path.join(os.getenv('TMP', '/tmp'), file.filename)
+            print(file_path)
+            # file_path = f'static/{file.filename}'
+            file.save(file_path)
+
+            # Store the file path in the session for access in the analysis route
+            session['file_path'] = file_path
+            session['bank_selected'] = bank_selected
+            session['sort'] = sort
+            session['FZ'] = fz
+
+
+            return redirect(url_for('authentication_blueprint.analysis'))
+
+    return render_template('home/index.html', bank_selected=bank_selected)
+
+@blueprint.route('/analysis', methods=['GET'])
+def analysis():
+    try:
+        current_page = 1
+        page_num = 0
+        text = ""
+        file_path = session.get('file_path')
+        bank_selected = session.get('bank_selected')
+        sort = session.get('sort')
+        fz = session.get('FZ')
+        temp = 1
+        if file_path and bank_selected:
+            if bank_selected == 'HLBB':
+                pdf = pdfplumber.open(file_path)
+
+                df_list = []  # Use a list to store DataFrames
+
+                for i in range(len(pdf.pages)):
+                    page = pdf.pages[i]
+                    table = page.extract_table(table_settings={"horizontal_strategy": "text"})
+
+                    if table:
+                        table_df = pd.DataFrame(table[2:])
+                        if len(table_df.columns) == 5:
+                            df_list.append(table_df)
+                df, bal = HLBB_main(df_list, sort=1)
+            elif bank_selected == 'UOB':
+                bal = []
+                pdf = pdfplumber.open(file_path)
+                df_list = []
+                for i in range(len(pdf.pages)):
+                    page = pdf.pages[i]
+                    if temp == 1:
+                        table = page.extract_table(table_settings={"horizontal_strategy": "lines", "vertical_strategy": "explicit", "explicit_vertical_lines": [20,100,183,310,400,490,570]})
+                    else:
+                        table = page.extract_table(table_settings={"horizontal_strategy": "text", "vertical_strategy": "explicit", "explicit_vertical_lines": [40,85,140,196,300,360,440, 530]})
+                    if table:
+                        table_df = pd.DataFrame(table[2:])
+                        df_list.append(table_df)
+                df = UOB_main(df_list, 1, temp)
+            elif bank_selected == 'ALLIANCE':
+                bal = []
+                pdf = pdfplumber.open(file_path)
+                df_list = []
+                for i in range(len(pdf.pages)):
+                    page = pdf.pages[i]
+                    table = page.extract_table(table_settings={"horizontal_strategy": "text", "vertical_strategy": "lines"})
+                    if table:
+                        table_df = pd.DataFrame(table[2:])
+                        df_list.append(table_df)
+                df,bal = ALL_main(df_list, 1)
+            else:
+                with pdfplumber.open(file_path) as pdf:
+                    bal = []
+                    text = ""
+                    for page in pdf.pages:
+                        page_num += 1
+                        text = f'{text} \n{page.extract_text()}'
+
+                rows = text.split('\n')
+
+                if bank_selected == "MBB":
+                    bal = [(s, rows[i+1]) for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in  ['BEGINNING BALANCE'])]
+                    df, bal = MBB_main(rows,bal, 1)
+                
+                elif bank_selected == "CIMB":
+                    bal = [(s, rows[i+1]) for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in  ['OPENING BALANCE'])]
+                    df, bal = CIMB_main(rows, bal, sort)
+
+                elif bank_selected == "PBB":
+                    bal = [(s, rows[i+1]) for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in  ['Balance From Last Statement'])]
+                    df, bal = PBB_main(rows, bal, sort)
+
+                elif bank_selected == "RHB":
+                    bal = [(s, rows[i+1]) for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in  ['B/FBALANCE', 'B/F BALANCE'])]
+                    cleaned_bal = []
+                    for entry in bal:
+                        text_match = re.search(r'(.+?)\s*BALANCE', entry[0])
+                        balance_match = re.search(r'BALANCE (.+)', entry[0])
+                        text = text_match.group(1).strip()
+                        balance = balance_match.group(1).strip()
+                        balance = re.sub(r'[^0-9.]', '', balance.replace(',', ''))
+
+                        cleaned_bal.append((text + " Balance " + balance, entry[1]))
+                    bal = cleaned_bal
+                    df, bal = RHB_main(rows, bal, sort)
+
+                elif bank_selected == "OCBC":
+                    bal = [(s, rows[i+1]) for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in  ['Balance B/F'])]
+                    df, bal = OCBC_main(rows, bal, sort)
+                    
+                elif bank_selected == "AM BANK":
+                    bal = [(s, rows[i+1]) for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in  ['Baki Bawa Ke Hadapan / Balance b/f'])]
+                    df, bal = AM_main(rows, bal, sort)
+
+                elif bank_selected == "BANK ISLAM":
+                    bal = [(s, rows[i+1]) for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in  ['BALB/F'])]
+                    df, bal = ISLAM_main(rows, bal, sort)
+
+            num_rows_per_page = 15
+            num_pages = (len(df) + num_rows_per_page - 1) // num_rows_per_page
+            df = df.reset_index(drop=True)
+            final_df = df[['Date', 'Description', 'Amount', 'Balance']]
+            # Convert DataFrame to HTML
+            table_html = final_df.to_html(classes='table table-striped', index=False, table_id='transactions-table')
+            p2p_keywords = ['Bay Smart', 'BM Ram Capital', 'B2B Finpal', 'Capsphere Services', 'Crowd Sense', 'P2P nusa kapital', 'fbm crowdtech', 'microleap', 'modalku ventures', 'moneysave', 'quickash']
+            p2p_df = final_df[final_df.apply(lambda row: any(keyword.lower() in row['Description'].lower() for keyword in p2p_keywords), axis=1)]
+            p2p_indices_list = (p2p_df.index.astype(int)).tolist()
+            warning, warning_index = check_balance_within_month(df, bal, sort, bank_selected)
+            summary_data = summary_main(df)
+            chart_data, average_daily_balances = plot_to_html_image(df, bal)
+            type_data = type(df)
+            repeat = find_repeat(final_df)
+            df['Amount2'] = pd.to_numeric(df['Amount2'], errors='coerce')
+            top5_amounts = df.loc[df['Amount2'].abs().nlargest(5).index]
+            ending_balances = [entry['ENDING BALANCE'] for entry in summary_data.values()]
+            average_ending_balance = sum(ending_balances) / len(ending_balances)
+            return render_template('home/dashboard.html', file_path=file_path.replace("\\","").split("/")[-1], table=table_html, num_pages=num_pages, bank_selected=bank_selected, 
+                                   current_page=current_page, summary_data=summary_data, chart_data=chart_data, warning_index=warning_index, 
+                                   p2p = p2p_indices_list, type_data=type_data, repeat=repeat, top5_amounts= top5_amounts, 
+                                   average_ending_balance=average_ending_balance, average_daily_balances=average_daily_balances, FZ=fz)
+
+        # Handle the case where data is not available
+        return redirect(url_for('authentication_blueprint.upload_file'))
+    except Exception as e:
+        print(e)
+        return render_template('home/error.html', error=f'{str(e)}')
+        # pass
+
+@blueprint.errorhandler(Exception)
+def handle_error(e):
+    return render_template('home/error.html', error=str(e))
+    # pass
 
 @login_manager.unauthorized_handler
 def unauthorized_handler():
