@@ -67,8 +67,8 @@
     <input type="file" id="file" name="file" accept=".pdf" required>
 
     <label for="bank">Select bank:</label>
-    <select id="bank" name="bank">
-        <option value="">-- Select an Option --</option>
+    <select id="bank" name="bank" onchange="toggleDateSort()">
+        <option default value="">-- Select an Option --</option>
         <option value="MBB">MBB</option>
         <option value="CIMB">CIMB</option>
         <option value="HLBB">HLBB</option>
@@ -83,9 +83,8 @@
 
     <label for="sort">Date order:</label>
     <select id="sort" name="sort">
-        <option value="">-- Select an Option --</option>
-        <option value=1>Dates are in positive order (starting from the 1st)</option>
-        <option value=-1>Dates are in reverse order (starting from the 31st)</option>
+        <option default value="1">Dates are in positive order (starting from the 1st)</option>
+        <option value="-1">Dates are in reverse order (starting from the 31st)</option>
     </select>
 
     <label for="FZ">FZ installment amount:</label>

@@ -751,6 +751,9 @@ def upload_file():
         sort = request.form.get('sort')
         fz = float(request.form.get('FZ'))
 
+        if sort == "":
+            sort = 1
+
         if file and bank_selected and sort and fz > 0:
             # Save the uploaded PDF file to the local storage directory
             file_path = os.path.join(os.getenv('TMP', '/tmp'), file.filename)

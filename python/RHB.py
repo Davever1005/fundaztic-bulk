@@ -6,13 +6,13 @@ def RHB_find_next_one(my_list, index):
     AMOUNT_REGEX = r'\.\d{2}|\.\d{2}-'
     for i in range(index + 1, len(my_list)):
         elements = my_list[i].split()
-        if my_list[i] == 'Tarikh Diskripsi Cek/NomborSiri Debit Kredit Baki' or my_list[i] == 'Date Description Cheque/Serial No Debit Credit Balance':
-            if 'B/FBALANCE' not in my_list[i+1]:
+        if my_list[i] == 'Tarikh Diskripsi Cek/NomborSiri Debit Kredit Baki' or my_list[i] == 'Tarikh Diskripsi Cek/ Nombor Siri Debit Kredit Baki':
+            return i
+        elif my_list[i] == 'Date Description Cheque/Serial No Debit Credit Balance':
+            if my_list[i+1] == 'Tarikh Diskripsi Cek/NomborSiri Debit Kredit Baki' or my_list[i+1] == 'Tarikh Diskripsi Cek/ Nombor Siri Debit Kredit Baki':
                 return i + 1
             else:
-                return i + 2
-        elif (re.match(DATE_REGEX, my_list[i].replace(" ", "")[0:5]) or re.match(DATE_REGEX, my_list[i].replace(" ", "")[0:5])) and (re.match(AMOUNT_REGEX, elements[-1][-3:]) or re.match(AMOUNT_REGEX, elements[-1][-4:])) and re.match(AMOUNT_REGEX, elements[-2][-3:]):
-            return i  # Return the index of the first occurrence of 1 after the specified index
+                return i
     return -1
 
 def RHB_process_rows(rows,bal, sort):
@@ -94,8 +94,8 @@ def RHB_process_rows(rows,bal, sort):
 
 
 def RHB_main(rows, bal, sort):
-    KEYWORDS_TO_REMOVE = ["Member of PIDM", "Protected by PIDM", 'IMPORTANTNOTES', 'MemberofPIDM/AhliPIDM']
-
+    KEYWORDS_TO_REMOVE = ["Member of PIDM", "Protected by PIDM", 'IMPORTANTNOTES', 'MemberofPIDM/AhliPIDM', 'maklumat lanjut.']
+    
     indices_containing = [i for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in KEYWORDS_TO_REMOVE)]
     indices_containing.sort(reverse=True)
 
@@ -145,7 +145,7 @@ def RHB_main(rows, bal, sort):
         bal = sorted(bal, key=lambda x: x[1])
     except Exception as e:
         print(e)
-
+    print(rows)
     data = RHB_process_rows(rows,bal, sort)
 
     df = pd.DataFrame.from_dict(data, orient='index')
