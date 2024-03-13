@@ -157,8 +157,8 @@ def RHB_main(rows, bal, sort):
         current_month = None
         i = 0
         try:
-            date_format = '%b%d'
-            df['Date2'] = pd.to_datetime(df['Date'], format=date_format)
+            date_format = '%b%d%Y'
+            df['Date2'] = pd.to_datetime(df['Date']+ '2024', format=date_format)
             df['Month'] = df['Date2'].dt.month
             df = df.sort_values(by = ['Date2', 'Idx'], ascending = [True, False])
             df["Sign"] = df.apply(lambda _: ' ', axis=1)
@@ -187,8 +187,8 @@ def RHB_main(rows, bal, sort):
             print(e)
 
         try:
-            date_format = '%d%b'
-            df['Date2'] = pd.to_datetime(df['Date'], format=date_format)
+            date_format = '%d%b%Y'
+            df['Date2'] = pd.to_datetime(df['Date']+ '2024', format=date_format)
             df['Month'] = df['Date2'].dt.month
             df = df.sort_values(by = ['Date2', 'Idx'], ascending = [True, False])
             df["Sign"] = df.apply(lambda _: ' ', axis=1)
@@ -223,8 +223,8 @@ def RHB_main(rows, bal, sort):
         df['Idx'] = df.index
         df['Idx'] = pd.to_numeric(df['Idx'], errors='coerce')
         try:
-            date_format = '%b%d'
-            df['Date2'] = pd.to_datetime(df['Date'], format=date_format)
+            date_format = '%b%d%Y'
+            df['Date2'] = pd.to_datetime(df['Date']+ '2024', format=date_format)
             df['Month'] = df['Date2'].dt.month
             df = df.sort_values(by = ['Date2', 'Idx'], ascending = [True, True])
             df["Sign"] = df.apply(lambda _: ' ', axis=1)
@@ -252,8 +252,8 @@ def RHB_main(rows, bal, sort):
             print(e)
 
         try:
-            date_format = '%d%b'
-            df['Date2'] = pd.to_datetime(df['Date'], format=date_format)
+            date_format = '%d%b%Y'
+            df['Date2'] = pd.to_datetime(df['Date']+ '2024', format=date_format)
             df['Month'] = df['Date2'].dt.month
             df = df.sort_values(by = ['Date2', 'Idx'], ascending = [True, True])
             df["Sign"] = df.apply(lambda _: ' ', axis=1)

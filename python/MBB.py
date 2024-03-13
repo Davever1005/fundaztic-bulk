@@ -316,13 +316,12 @@ TOTAL CREDIT :
     string_to_remove = 'ENTRY DATE VALUE DATE TRANSACTION DESCRIPTION GST TYPE TRANSACTION AMOUNT STATEMENT BALANCE'
     rows = [item for item in rows if item.strip() != string_to_remove]
     rows = [item for item in rows if 'BEGINNING BALANCE' not in item]
+
     data = MBB_process_rows(rows, bal)
 
-
     df = pd.DataFrame.from_dict(data, orient='index')
-
     df['Date2'] = pd.to_datetime(df['Date'], errors='coerce', format='%d/%m/%Y')
-    df['Date2'].fillna(pd.to_datetime(df['Date'], errors='coerce', format='%d/%m'), inplace=True)
+    df['Date2'].fillna(pd.to_datetime(df['Date'] + '/2024', errors='coerce', format='%d/%m/%Y'), inplace=True)
     df['Date2'].fillna(pd.to_datetime(df['Date'], errors='coerce', format='%d/%m/%y'), inplace=True)
 
     df['Month'] = df['Date2'].dt.month
@@ -336,6 +335,5 @@ TOTAL CREDIT :
     bal = sorted(bal, key=lambda x: x[1])
     
     df['Amount2'] = df.Amt * df.Sign
-
     return df, bal
 
