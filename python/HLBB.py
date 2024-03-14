@@ -69,4 +69,6 @@ def HLBB_main(df_list, sort):
     df = df.drop(['Deposit', 'Withdrawal'], axis=1)
     df = df.reset_index(drop=True)
 
+    bal = [(x, y) for x, y, _ in bal]
+
     return df, bal

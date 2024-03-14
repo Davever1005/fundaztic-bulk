@@ -5,7 +5,6 @@ import calendar
 def plot_to_html_image(df, bal):
     # Ensure all days are present in the data
     updated_data = pd.DataFrame(columns=['Date2', 'Balance'])
-
     for month in df['Date2'].dt.to_period("M").unique():
         month_df = pd.DataFrame({'Date2': pd.date_range(month.start_time, month.end_time)})
         month_df['Balance'] = month_df['Date2'].apply(lambda x: df.loc[df['Date2'].dt.date == x.date(), 'Balance'].values[-1] if not df.loc[df['Date2'].dt.date == x.date()].empty else None)
@@ -25,5 +24,5 @@ def plot_to_html_image(df, bal):
         'Labels': updated_data['Date2'].dt.strftime('%d/%m').unique().tolist(),
         'Data': updated_data['Balance'].tolist()
     }
-
+    
     return chart_data, average_daily_balances
