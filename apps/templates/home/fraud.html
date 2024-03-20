@@ -1,0 +1,157 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}{% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+<style>
+    .attribute-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        font-size: 12px;
+    }
+
+    .attribute-table th, .attribute-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+        font-size: 12px;
+    }
+
+    .attribute-table th {
+        background-color: #f2f2f2;
+    }
+
+    .attribute-table ul {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .attribute-table li {
+        margin-bottom: 5px;
+        font-size: 12px;
+    }
+
+    .example td,
+    .example th {
+        font-size: 10px;
+        color: gray;
+    }
+
+
+</style>
+
+{% endblock stylesheets %}
+
+{% block content %}
+
+  <div class="py-4">
+      <div class="d-flex justify-content-between w-100 flex-wrap">
+          <div class="mb-3 mb-lg-0">
+              <h1 class="h4">Fraud Detection</h1>
+          </div>
+      </div>
+  </div>
+
+  <div class="card border-0 shadow mb-4">
+      <div class="card-body">
+        <form id="csvUploadForm" enctype="multipart/form-data">
+            <input type="file" id="file" name="file" accept=".pdf" required>
+            <button type="button" class="result-button" onclick="uploadPDF()">Upload</button>
+            <select id="bank" name="bank">
+                <option default value="">-- Select an Option --</option>
+                <option value="MBB">MBB</option>
+                <option value="CIMB">CIMB</option>
+                <option value="HLBB">HLBB</option>
+                <option value="PBB">PBB</option>
+                <option value="RHB">RHB</option>
+                <option value="OCBC">OCBC</option>
+                <option value="AM BANK">AM BANK</option>
+                <option value="BANK ISLAM">BANK ISLAM</option>
+                <option value="UOB">UOB</option>
+                <option value="ALLIANCE">ALLIANCE</option>
+            </select>
+        </form>
+      </div>
+  </div>
+
+  <div class="card border-0 shadow  p-3">
+    <div class="loading-overlay" id="loadingOverlay" style="display:none;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only"></span>
+        </div>
+    </div>
+    <div class="card border-0 shadow">
+        <div class="card-body">
+            <div class="h6 mb-0 text-center" id="meta">
+                <h5 class="py-2"><strong>Metadata</strong></h5>
+            </div>
+        </div>
+    </div>
+    <div class="card border-0 shadow">
+        <div class="card-body">
+            <div class="h6 mb-0 text-center" id="font">
+                <h5 class="py-2"><strong>Font Detection</strong></h5>
+            </div>
+        </div>
+    </div>
+  </div>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.3/socket.io.js"></script>
+
+
+<script>
+    function uploadPDF() {
+        var formData = new FormData($('#csvUploadForm')[0]);
+        $('#loadingOverlay').show();
+
+        $.ajax({
+            url: "/fraud_process",
+            type: "POST",
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function(response) {
+                console.log(response)
+                $('#loadingOverlay').hide();
+                // Handle successful response
+                $('#meta').empty();
+                $('#font').empty();
+                
+                var metadataHTML = '<h5 class="py-2"><strong>Metadata</strong></h5>';
+                for (var key in response.meta) {
+                    metadataHTML += "<div style='font-size: small;'><strong>" + key + ":</strong> " + response.meta[key] + "</div>";
+                }
+                var fontObj = JSON.parse(response.font);
+                var fontHTML = '<h5 class="py-2"><strong>Font Detection</strong></h5>';
+                if (fontObj.page){
+                    fontHTML += "<div>Found different fonts on page <strong>" + fontObj.page +  ":</strong></div> ";
+                    fontHTML += '<iframe style="font-size: small;" src="' + "{{ url_for('authentication_blueprint.preview_file') }}" + '" width="100%" height="550vh" frameborder="0"></iframe>';
+                }
+                else if (fontObj.Warning){
+                    fontHTML += "<div><strong>" + fontObj.Warning +  "</strong></div> ";
+                }
+                else if (fontObj.good){
+                    fontHTML += "<div><strong>" + fontObj.good +  "</strong></div> ";
+                    fontHTML += '<iframe style="font-size: small;" src="' + "{{ url_for('authentication_blueprint.preview_file') }}" + '" width="100%" height="550vh" frameborder="0"></iframe>';
+                }
+                $('#meta').append(metadataHTML);
+                $('#font').append(fontHTML);
+            },
+            error: function(xhr, status, error) {
+                // Handle error
+                console.error(error);
+                alert("Error occurred while uploading PDF.");
+            }
+        });
+    }
+</script>
+
+{% endblock javascripts %}

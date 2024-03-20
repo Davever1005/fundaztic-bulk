@@ -35,7 +35,7 @@
                     <canvas id="myChart" style="display: block;
                     position: relative;
                     width: 100%;
-                    height: 300px;"></canvas>
+                    height: 500px;"></canvas>
                 </div>
                 <div class="row" style="padding-left: 1.5rem; padding-right: 1.5rem;">
                     {% for month, data in summary_data.items() %}
@@ -183,7 +183,7 @@
                                 {% set pages_per_row = 20 %}
                                 {% set total_rows = (num_pages + pages_per_row - 1) // pages_per_row %}
                                 
-                                <div class="pagination-row">
+                                <div class="pagination-row px-3">
                                     {% for row in range(total_rows) %}
                                         <div class="d-flex">
                                             {% set start_page = row * pages_per_row + 1 %}
@@ -244,21 +244,21 @@
                                 {% for type_name, data in type_data.items() %}
                                 <tr>
                                     <td class="col-8">
-                                        <div class="d-block" style="font-size: 0.9rem;">
+                                        <div class="d-block" style="font-size: 0.7rem;">
                                             <b>{{ type_name }}</b>
                                         </div>
-                                        <div class="d-block" style="font-size: 0.7rem;">
+                                        <div class="d-block" style="font-size: 0.6rem;">
                                             <small>{{data.count}} Transactions</small>
                                         </div>
                                     </td>
-                                    <td class="col-2" style="text-align: right; color:springgreen; font-size: 0.8rem;">
+                                    <td class="col-2" style="text-align: right; color:springgreen; font-size: 0.7rem;">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
                                             <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
                                           </svg>
                                           {{ '%.2f'|format(data.credit_sum) }}
                                         
                                     </td>
-                                    <td class="col-2" style="text-align: right; color: hotpink; font-size: 0.8rem;">
+                                    <td class="col-2" style="text-align: right; color: hotpink; font-size: 0.7rem;">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dash" viewBox="0 0 16 16">
                                             <path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8"/>
                                           </svg>

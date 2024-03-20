@@ -145,7 +145,6 @@ def RHB_main(rows, bal, sort):
         bal = sorted(bal, key=lambda x: x[1])
     except Exception as e:
         print(e)
-    print(rows)
     data = RHB_process_rows(rows,bal, sort)
 
     df = pd.DataFrame.from_dict(data, orient='index')

@@ -2534,6 +2534,8 @@ progress {
   color: #374151;
   vertical-align: top;
   border-color: #E5E7EB; 
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; 
 }
 
 .type > :not(caption) > * > * {

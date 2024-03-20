@@ -51,12 +51,20 @@ from python.check import check_balance_within_month
 from python.ALLIANCE import ALL_main
 from python.type import type
 from python.repetition import find_repeat
+from python.font_check import text_extraction, process_fonts, extract_fonts, draw_rectangles
 import re
 import os
 from fuzzywuzzy import fuzz
 from collections import defaultdict
 import calendar
-
+from pdfminer.high_level import extract_pages
+from pdfminer.layout import LTTextContainer, LTChar
+from pypdf import PdfReader, PdfWriter
+from pypdf.annotations import Highlight
+from pypdf.generic import ArrayObject, FloatObject
+from pdfminer.pdfparser import PDFParser
+from pdfminer.pdfdocument import PDFDocument
+from python.metadata import metadata
 
 @blueprint.route('/')
 def route_default():
@@ -423,14 +431,16 @@ def process_csv(csv_file):
 
             # Append the processed row to the DataFrame
             processed_data = processed_data.append(row, ignore_index=True)
-            session['processed_data'] = processed_data.to_csv(index=False)
+            processed_path = os.path.join(os.getenv('TMP', '/tmp'), "result.csv")
+            processed_data.to_csv(processed_path, index=False)
         except Exception as error:
             print(f"An error occurred: {error}")
             # Set result to 'error' in case of any exception
             row['Result'] = error
             # Append the row to the DataFrame with the error result
             processed_data = processed_data.append(row, ignore_index=True)
-            session['processed_data'] = processed_data.to_csv(index=False)     
+            processed_path = os.path.join(os.getenv('TMP', '/tmp'), "result.csv")
+            processed_data.to_csv(processed_path, index=False)   
     # Return the HTML table
     return processed_data
 
@@ -449,17 +459,9 @@ def download_template():
 
 @blueprint.route('/download_processed_csv')
 def download_processed_csv():
-    # Retrieve the processed CSV data from the session
-    processed_csv = session.get('processed_data')
-    if processed_csv:
-
-        # Send the file for download
-        return send_file(
-            BytesIO(processed_csv.encode()),
-            as_attachment=True,
-            download_name='result.csv',
-            mimetype='text/csv'
-        )
+    processed_path = os.path.join(os.getenv('TMP', '/tmp'), "result.csv")
+    if os.path.exists(processed_path):
+        return send_file(processed_path, as_attachment=True)
     else:
         return jsonify({'error': 'Processed data not found in session'})
 
@@ -714,14 +716,16 @@ def pre_process_csv(csv_file):
 
             # Append the processed row to the DataFrame
             processed_data = processed_data.append(row, ignore_index=True)
-            session['processed_data'] = processed_data.to_csv(index=False)
+            processed_path = os.path.join(os.getenv('TMP', '/tmp'), "result.csv")
+            processed_data.to_csv(processed_path, index=False)   
         except Exception as error:
             print(f"An error occurred: {error}")
             # Set result to 'error' in case of any exception
             row['Result'] = error
             # Append the row to the DataFrame with the error result
             processed_data = processed_data.append(row, ignore_index=True)
-            session['processed_data'] = processed_data.to_csv(index=False)     
+            processed_path = os.path.join(os.getenv('TMP', '/tmp'), "result.csv")
+            processed_data.to_csv(processed_path, index=False)     
     # Return the HTML table
     return processed_data
 
@@ -889,6 +893,7 @@ def analysis():
             top5_amounts = df.loc[df['Amount2'].abs().nlargest(5).index]
             ending_balances = [entry['ENDING BALANCE'] for entry in summary_data.values()]
             average_ending_balance = sum(ending_balances) / len(ending_balances)
+            
             return render_template('home/dashboard.html', file_path=file_path.replace("\\","").split("/")[-1], table=table_html, num_pages=num_pages, bank_selected=bank_selected, 
                                    current_page=current_page, summary_data=summary_data, chart_data=chart_data, warning_index=warning_index, 
                                    p2p = p2p_indices_list, type_data=type_data, repeat=repeat, top5_amounts= top5_amounts, 
@@ -900,6 +905,75 @@ def analysis():
         print(e)
         return render_template('home/error.html', error=f'{str(e)}')
         # pass
+    
+@blueprint.route('/download_annotated')
+def download_annotated():
+    annotated_path = os.path.join(os.getenv('TMP', '/tmp'), "annotated.pdf")
+    if os.path.exists(annotated_path):
+        return send_file(annotated_path, as_attachment=True)
+
+@blueprint.route('/fraud')
+def route_fraud():
+    return render_template('home/fraud.html')
+
+@blueprint.route('/fraud_process', methods=['POST'])
+def fraud_process():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'})
+
+    file = request.files['file']
+    bank_selected = request.form.get('bank')
+    
+    # Check if the file is empty
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'})
+
+    # Process the file as needed
+    # For example, save it to a folder
+    file_path = os.path.join(os.getenv('TMP', '/tmp'), "file.pdf")
+
+    file.save(file_path)
+
+    results = []
+    for pagenum, page in enumerate(extract_pages(file_path)):
+
+        # Iterate the elements that composed a page
+        for element in page:
+
+            # Check if the element is a text element
+            if isinstance(element, LTTextContainer):
+                result = text_extraction(element)
+                results.append((pagenum, result))
+    
+    font_data = extract_fonts(file_path)
+    if bank_selected == "RHB":
+        font = [font_base for fonts in font_data for font_id, font_base in fonts.items() if font_id.startswith("/F") or (font_id.startswith("/V") and font_id.endswith("F"))]
+        font.append("Helvetica")
+    elif bank_selected =="PBB" or bank_selected =="OCBC" or bank_selected =="AM BANK":
+        font = []
+    else:
+        font = [font_base for fonts in font_data for font_id, font_base in fonts.items() if font_id.startswith("/F")]
+    unique_list = list(set(font))
+    
+    if len(unique_list) > 1:
+        fraud_json = draw_rectangles(file_path, results, unique_list)
+    elif bank_selected =="PBB" or bank_selected =="OCBC" or bank_selected =="AM BANK":
+        fraud_json = json.dumps({"Warning": "Font detection is currently not available for Public Bank, OCBC and Am bank."})
+    else:
+        fraud_json = json.dumps({"Warning": "Please verify the authenticity of this PDF as font differences may indicate possible changes."})
+
+    meta = metadata(file_path)
+    if len(meta) > 0:
+        meta = [{key: str(value.decode('windows-1252')) if isinstance(value, bytes) else value for key, value in entry.items()} for entry in meta]
+    else:
+        meta = [{'Message': 'No Metadata Found.'}]
+    
+    return jsonify({'meta': meta[0], 'font': fraud_json})
+
+@blueprint.route('/preview_file')
+def preview_file():
+    annotated_path = os.path.join(os.getenv('TMP', '/tmp'), "annotated.pdf")
+    return send_file(annotated_path, as_attachment=False)
 
 @blueprint.errorhandler(Exception)
 def handle_error(e):

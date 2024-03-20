@@ -2,11 +2,11 @@ def type(df):
     # List of transaction types and their keywords
     transaction_types = {
         "Cheque": ["CHQ"],
-        "Cash": ["CASH DEPOSIT"],
+        "Cash": ["CASH DEPOSIT", "ATM Cash", "CDM Deposit", "DEP-CASH", "CASH DEP", "CSH DEP"],
         "QR": ["QR P2P", "QRPOS", "MAE QR", "DuitNow QR"],
         "E-wallet": ["GPAY NETWORK", "BIGPAY MALAYSIA", "TNG DIGITAL", "AXIATA DIGITAL", "SHOPEEPAY"],
         "DuitNow": ["DUITNOW"],
-        "Other merchants": ["CR/CARD SALES", "DR/CARD SALES"],
+        "Other merchants": ["CR/CARD SALES", "DR/CARD SALES", "DEBITCARD", "CR CARD"],
         "TOD/TEOD Charges": ["TOD/TEOD"]
     }
 
