@@ -23,6 +23,19 @@ def PBB_find_next_one(my_list, index):
                 return (date, i)  # Return the index of the first occurrence of 1 after the specified index
     return (date, -1)
 
+def add_year(my_list):
+    DATE_REGEX = r'\d{2}/\d{2}'
+    AMOUNT_REGEX = r'\d\.\d{2}'
+    year = None
+    for i in range(len(my_list)):
+        elements = my_list[i].split()
+        if len(elements)>0:
+            if 'Statement Date' in my_list[i] and re.match(r'\d{4}',elements[-1]):
+                year = elements[-1]
+            elif re.match(DATE_REGEX, elements[0]) and re.match(AMOUNT_REGEX, elements[-2][-4:]):
+                elements[0] = elements[0] + '/' + str(year)
+                my_list[i] = " ".join(elements)
+
 def PBB_process_rows(rows, bal, sort):
     DATE_REGEX = r'\d{2}/\d{2}'
     AMOUNT_REGEX = r'\d\.\d{2}'
@@ -63,6 +76,14 @@ def PBB_process_rows(rows, bal, sort):
                         "Amount": amt,
                         "Balance": round(float(balance), 2)
                     }
+                elif test == 1 and all(s not in "".join(elements) for s in KEYWORDS_TO_REMOVE):
+                    # This is a continuation of the description, skip if "**"
+                    if "Description" not in transaction:
+                        transaction["Description"] = " ".join(elements)
+                    else:
+                        transaction["Description"] += " " + " ".join(elements)
+                else:
+                    test = 0
 
             elif test == 1 and all(s not in "".join(elements) for s in KEYWORDS_TO_REMOVE):
                 # This is a continuation of the description, skip if "**"
@@ -83,7 +104,7 @@ def PBB_process_rows(rows, bal, sort):
 def PBB_main(rows, bal, sort):
     DATE_REGEX = r'\d{2}/\d{2}'
     KEYWORDS_TO_REMOVE = ["Penyata ini dicetak melalui komputer", "Baki Harian Dan Penutup Meliputi Semua"]
-
+    add_year(rows)
 
     indices_containing = [i for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in KEYWORDS_TO_REMOVE)]
     indices_containing.sort(reverse=True)
@@ -183,36 +204,6 @@ def PBB_main(rows, bal, sort):
         except Exception as e:
             pass
 
-        try:
-            date_format = '%d/%m/%Y'
-            df['Date2'] = pd.to_datetime(df['Date'] + "/2024", format=date_format, errors='coerce')
-            df['Month'] = df['Date2'].dt.month
-            df = df.sort_values(by = ['Date2', 'Idx'], ascending = [True, False])
-            df["Sign"] = df.apply(lambda _: ' ', axis=1)
-            df["Amt"] = df.apply(lambda _: ' ', axis=1)
-            bal = sorted(bal, key=lambda x: x[1])
-            for index, row in df.iterrows():
-                date_str = row['Month']
-                if current_month is None or date_str.month != current_month:
-                    # Update current month and reset previous balance
-                    current_month = date_str.month
-                    find_balance = next((item[0] for item in bal if item[1] == current_month), None)
-                    if find_balance:
-                        previous_balance = find_balance
-                diff = float(row['Balance']) - float(previous_balance)
-                A = str(row['Amount'])
-                if diff < 0:
-                    df.loc[index, "Amount"] = f'{float(A):.2f}-'
-                    df.loc[index, "Sign"] = -1
-                    df.loc[index, "Amt"] = round(float(A), 2)
-                else:
-                    df.loc[index, "Amount"] = f'{float(A):.2f}+'
-                    df.loc[index, "Sign"] = 1
-                    df.loc[index, "Amt"] = round(float(A), 2)
-                previous_balance = row['Balance']
-        except Exception as e:
-            pass
-
     elif sort == '1':
         i = 0
         previous_balance = None
@@ -247,35 +238,6 @@ def PBB_main(rows, bal, sort):
                 previous_balance = row['Balance']
         except Exception as e:
             pass
-
-        try:
-            date_format = '%d/%m/%Y'
-            df['Date2'] = pd.to_datetime(df['Date'] + "/2024", format=date_format, errors='coerce')
-            df['Month'] = df['Date2'].dt.month
-            df = df.sort_values(by = ['Date2', 'Idx'], ascending = [True, True])
-            df["Sign"] = df.apply(lambda _: ' ', axis=1)
-            df["Amt"] = df.apply(lambda _: ' ', axis=1)
-            for index, row in df.iterrows():
-                date_str = row['Month']
-                if current_month is None or date_str != current_month:
-                    # Update current month and reset previous balance
-                    current_month = date_str
-                    find_balance = next((item[0] for item in bal if item[1] == current_month), None)
-                    if find_balance:
-                        previous_balance = find_balance
-                diff = float(row['Balance']) - float(previous_balance)
-                A = str(row['Amount'])
-                if diff < 0:
-                    df.loc[index, "Amount"] = f'{float(A):.2f}-'
-                    df.loc[index, "Sign"] = -1
-                    df.loc[index, "Amt"] = round(float(A), 2)
-                else:
-                    df.loc[index, "Amount"] = f'{float(A):.2f}+'
-                    df.loc[index, "Sign"] = 1
-                    df.loc[index, "Amt"] = round(float(A), 2)
-                previous_balance = row['Balance']
-        except Exception as e:
-            print(e)
     
     df['Amount2'] = df.Amt * df.Sign
 

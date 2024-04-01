@@ -1,40 +1,30 @@
+import pandas as pd
+
 def summary_main(df):
-    unique_months_list = df['Month'].unique()
 
     dict_data={}
-    # Iterate through unique months and populate the dictionary
-    for month in unique_months_list:
-        # Use boolean indexing to filter rows for a specific month
-        filtered_df = df[df['Month'] == month]
+    # Convert 'Amount' column to numeric (remove commas and convert to float)
+    df['Amount2'] = df['Amount2'].replace('[\$,]', '', regex=True).astype(float)
+
+    df['Month_Year'] = df['Date2'].dt.strftime('%b %y')
+
+    for name, group in df.groupby(df['Month_Year']):
+        begin = group.iloc[0]['Balance'] - group.iloc[0]['Amount2']
+        cr_count = group[group['Sign'] == 1]['Amount2'].count()
+        cr_sum = group[group['Sign'] == 1]['Amount2'].sum()
+        db_count = group[group['Sign'] == -1]['Amount2'].count()
+        db_sum = abs(group[group['Sign'] == -1]['Amount2'].sum())
+        ending_balance = group.iloc[-1]['Balance']
         
-        if not filtered_df.empty:
-            credit_df = filtered_df.query('Amount.str.contains("\+")')
-            debit_df = filtered_df.query('Amount.str.contains("-")')
+        dict_data[name] = {
+            'BEGINNING BALANCE': round(begin, 2),
+            'CR_Transactions': cr_count,
+            'CR_Amount': round(cr_sum, 2),
+            'DB_Transactions': db_count,
+            'DB_Amount': round(db_sum, 2),
+            'ENDING BALANCE': round(ending_balance, 2)
+        }
 
-            cr_count = len(credit_df)
-            db_count = len(debit_df)
-            if cr_count > 0:
-                cr_sum = credit_df['Amount'].str.replace("\+", "").str.replace(",", "").astype(float).sum()
-            else:
-                cr_sum = 0
-
-            if db_count > 0:
-                db_sum = debit_df['Amount'].str.replace("-", "").str.replace(",", "").astype(float).sum()
-            else:
-                db_sum = 0
-            if '-' in filtered_df.iloc[0]['Amount']:
-                begin = filtered_df.iloc[0]['Balance'] + float(filtered_df.iloc[0]['Amount'].replace("-", "").replace(",", ""))
-            elif '+' in filtered_df.iloc[0]['Amount']:
-                begin = filtered_df.iloc[0]['Balance'] - float(filtered_df.iloc[0]['Amount'].replace("+", "").replace(",", ""))
-            dict_data[month] = {
-                'BEGINNING BALANCE': round(begin,2),
-                'CR_Transactions': cr_count,
-                'CR_Amount': round(cr_sum,2),
-                'DB_Transactions': db_count,
-                'DB_Amount': round(db_sum,2),
-                'ENDING BALANCE': filtered_df.iloc[-1]['Balance']
-            }
-        else:
-            print(f"No data available for {month}")
+    dict_data = dict(sorted(dict_data.items(), key=lambda x: pd.to_datetime(x[0], format='%b %y')))
 
     return dict_data

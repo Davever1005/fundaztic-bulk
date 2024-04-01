@@ -25,4 +25,4 @@ pandas==1.5.3
 fuzzywuzzy
 pdfplumber==0.10.2
 pypdf==4.1.0
-pdfminer==20191125
+pdfminer-six==20221105

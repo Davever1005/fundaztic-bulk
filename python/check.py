@@ -63,6 +63,7 @@ def check_balance_within_month(df, bal, sort, bank_selected):
             calculated_balance = float(prev_balance) + float(amount2)
             prev_month = current_month
             # Compare with current balance
+            
             if round(calculated_balance,2) != round(current_balance,2):
                 warning.append(f"Balance mismatch at {row['Date']}: {row['Description']}, {row['Amount2']}, {row['Balance']} :: Calculated Balance = {calculated_balance}")
                 warning_index.append(int(index))

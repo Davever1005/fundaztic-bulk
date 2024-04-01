@@ -65,6 +65,9 @@ def ALL_main(df_list, sort):
     df = df.drop(['Credit', 'Debit'], axis=1)
     df = df.reset_index(drop=True)
 
+    df['Sign'] = df['Amount2'].apply(lambda x: 1 if x > 0 else -1)
+    df['Description'] = df['Description'].str.replace('\n', ' ')
+    
     bal = [(x, y) for x, y, _ in bal]
 
     return df, bal

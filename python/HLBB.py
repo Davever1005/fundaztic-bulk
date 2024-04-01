@@ -71,4 +71,8 @@ def HLBB_main(df_list, sort):
 
     bal = [(x, y) for x, y, _ in bal]
 
+    df['Sign'] = df['Amount2'].apply(lambda x: 1 if x > 0 else -1)
+    df['Description'] = df['Description'].str.replace('\n', ' ')
+
+
     return df, bal

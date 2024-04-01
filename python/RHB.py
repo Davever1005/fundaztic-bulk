@@ -3,7 +3,7 @@ import re
 
 def RHB_find_next_one(my_list, index):
     DATE_REGEX = r'\w{3}\d{2}|\d{2}\w{3}'
-    AMOUNT_REGEX = r'\.\d{2}|\.\d{2}-'
+    AMOUNT_REGEX = r'\.\d{2}|\.\d{2}-|\d{1}\.\d{1}'
     for i in range(index + 1, len(my_list)):
         elements = my_list[i].split()
         if my_list[i] == 'Tarikh Diskripsi Cek/NomborSiri Debit Kredit Baki' or my_list[i] == 'Tarikh Diskripsi Cek/ Nombor Siri Debit Kredit Baki':
@@ -15,9 +15,35 @@ def RHB_find_next_one(my_list, index):
                 return i
     return -1
 
+def add_year(my_list):
+    DATE_REGEX = r'\w{3}\d{2}|\d{2}\w{3}'
+    AMOUNT_REGEX = r'\.\d{2}|\.\d{2}-|\d{1}\.\d{1}'
+    months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+    pattern = r'\w{3} \d{2}, \d{4} to \w{3} \d{2}, \d{4} \d{1} of \d{1}'
+    year = None
+    for i in range(len(my_list)):
+        date_idx = None
+        elements = my_list[i].split()
+        if len(elements)>0:
+            if ('Statement Period' in my_list[i] or 'StatementPeriod' in my_list[i]) and re.match(r'\d{2}',elements[-1][-2:]):
+                year = elements[-1][-2:]
+            elif re.match(pattern, my_list[i]):
+                year = elements[-4][-2:]
+            elif len(elements) > 2:
+                if any(month in elements[0].upper() for month in months) and len(elements[0])==3:
+                    date_idx = 2
+                elif any(month in elements[0].upper() for month in months) and len(elements[0])>3:
+                    date_idx = 1
+                elif any(month in elements[1].upper() for month in months) and len(elements[0]):
+                    date_idx = 2
+                if date_idx and re.match(DATE_REGEX, "".join(elements[0:date_idx]).replace(" ", "")[0:5]) and (re.match(AMOUNT_REGEX, elements[-1][-3:]) or re.match(AMOUNT_REGEX, elements[-1][-4:])) and re.match(AMOUNT_REGEX, elements[-2][-3:]):
+                    elements[0] = "".join(elements[0:date_idx]).replace(" ", "")[0:5] + str(year)
+                    elements[1:date_idx] = " "
+                    my_list[i] = " ".join(elements)
+
 def RHB_process_rows(rows,bal, sort):
     DATE_REGEX = r'\w{3}\d{2}|\d{2}\w{3}'
-    AMOUNT_REGEX = r'\.\d{2}|\.\d{2}-'
+    AMOUNT_REGEX = r'\.\d{2}|\.\d{2}-|\d{1}\.\d{1}'
     KEYWORDS_TO_REMOVE = ["Member of PIDM", "B/F BALANCE", "Protected by PIDM", 'IMPORTANTNOTES', 'B/FBALANCE', 'C/FBALANCE']
     data = {}
     transaction_number = 1
@@ -95,7 +121,7 @@ def RHB_process_rows(rows,bal, sort):
 
 def RHB_main(rows, bal, sort):
     KEYWORDS_TO_REMOVE = ["Member of PIDM", "Protected by PIDM", 'IMPORTANTNOTES', 'MemberofPIDM/AhliPIDM', 'maklumat lanjut.']
-    
+    add_year(rows)
     indices_containing = [i for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in KEYWORDS_TO_REMOVE)]
     indices_containing.sort(reverse=True)
 
@@ -156,8 +182,8 @@ def RHB_main(rows, bal, sort):
         current_month = None
         i = 0
         try:
-            date_format = '%b%d%Y'
-            df['Date2'] = pd.to_datetime(df['Date']+ '2024', format=date_format)
+            date_format = '%b%d%y'
+            df['Date2'] = pd.to_datetime(df['Date'], format=date_format)
             df['Month'] = df['Date2'].dt.month
             df = df.sort_values(by = ['Date2', 'Idx'], ascending = [True, False])
             df["Sign"] = df.apply(lambda _: ' ', axis=1)
@@ -186,8 +212,8 @@ def RHB_main(rows, bal, sort):
             print(e)
 
         try:
-            date_format = '%d%b%Y'
-            df['Date2'] = pd.to_datetime(df['Date']+ '2024', format=date_format)
+            date_format = '%d%b'
+            df['Date2'] = pd.to_datetime(df['Date'], format=date_format)
             df['Month'] = df['Date2'].dt.month
             df = df.sort_values(by = ['Date2', 'Idx'], ascending = [True, False])
             df["Sign"] = df.apply(lambda _: ' ', axis=1)
@@ -222,8 +248,8 @@ def RHB_main(rows, bal, sort):
         df['Idx'] = df.index
         df['Idx'] = pd.to_numeric(df['Idx'], errors='coerce')
         try:
-            date_format = '%b%d%Y'
-            df['Date2'] = pd.to_datetime(df['Date']+ '2024', format=date_format)
+            date_format = '%b%d%y'
+            df['Date2'] = pd.to_datetime(df['Date'], format=date_format)
             df['Month'] = df['Date2'].dt.month
             df = df.sort_values(by = ['Date2', 'Idx'], ascending = [True, True])
             df["Sign"] = df.apply(lambda _: ' ', axis=1)
@@ -251,8 +277,8 @@ def RHB_main(rows, bal, sort):
             print(e)
 
         try:
-            date_format = '%d%b%Y'
-            df['Date2'] = pd.to_datetime(df['Date']+ '2024', format=date_format)
+            date_format = '%d%b%y'
+            df['Date2'] = pd.to_datetime(df['Date'], format=date_format)
             df['Month'] = df['Date2'].dt.month
             df = df.sort_values(by = ['Date2', 'Idx'], ascending = [True, True])
             df["Sign"] = df.apply(lambda _: ' ', axis=1)

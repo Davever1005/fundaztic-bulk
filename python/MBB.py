@@ -14,9 +14,24 @@ def MBB_find_next_one(my_list, index):
         elements = my_list[i].split()
         if my_list[i] == 'ENTRY DATE VALUE DATE TRANSACTION DESCRIPTION TRANSACTION AMOUNT STATEMENT BALANCE' or my_list[i] ==  'ENTRY DATE VALUE DATE TRANSACTION DESCRIPTION GST TYPE TRANSACTION AMOUNT STATEMENT BALANCE' or my_list[i] ==  'ENTRY DATE TRANSACTION DESCRIPTION GST TYPE TRANSACTION AMOUNT STATEMENT BALANCE':
             return i
-        elif re.match(DATE_REGEX, my_list[i]) and re.match(BAL_REGEX, elements[-1][-3:]) and re.match(AMOUNT_REGEX, elements[-2][-3:]):
+        elif re.match(DATE_REGEX, elements[0]) and (re.match(BAL_REGEX, elements[-1][-3:]) or re.match(BAL_REGEX, elements[-1][-5:])) and re.match(AMOUNT_REGEX, elements[-2][-4:]):
             return i
     return -1
+
+def add_year(my_list):
+    DATE_REGEX = r'\d{2}/\d{2}'
+    AMOUNT_REGEX = r'\.\d{2}[+-]'
+    BAL_REGEX = r'\.\d{2}|\.\d{2}DR'
+    year = None
+    for i in range(len(my_list)):
+        elements = my_list[i].split()
+        if len(elements)>0:
+            if re.match(r'\d{2}/\d{2}/\d{2}',elements[-1]):
+                year = elements[-1][-2:]
+            elif re.match(DATE_REGEX, elements[0]) and (re.match(BAL_REGEX, elements[-1][-3:]) or re.match(BAL_REGEX, elements[-1][-5:])) and re.match(AMOUNT_REGEX, elements[-2][-4:]):
+                elements[0] = elements[0] + '/' + str(year)
+                my_list[i] = " ".join(elements)
+
 
 def MBB_process_rows(rows, bal):
     DATE_REGEX = r'\d{2}/\d{2}'
@@ -132,6 +147,8 @@ def MBB_main(rows, bal, sort):
     DATE_REGEX = r'\d{2}/\d{2}'
     indices_containing = [i for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in KEYWORDS_TO_REMOVE )]
     indices_containing.sort(reverse=True)
+
+    add_year(rows)
 
     for index in indices_containing:
         if 0 <= index < len(rows):
@@ -321,7 +338,6 @@ TOTAL CREDIT :
 
     df = pd.DataFrame.from_dict(data, orient='index')
     df['Date2'] = pd.to_datetime(df['Date'], errors='coerce', format='%d/%m/%Y')
-    df['Date2'].fillna(pd.to_datetime(df['Date'] + '/2024', errors='coerce', format='%d/%m/%Y'), inplace=True)
     df['Date2'].fillna(pd.to_datetime(df['Date'], errors='coerce', format='%d/%m/%y'), inplace=True)
 
     df['Month'] = df['Date2'].dt.month

@@ -17,8 +17,23 @@ def AM_find_next_one(my_list, index):
             return i  # Return the index of the first occurrence of 1 after the specified index
     return -1
 
-def AM_process_rows(rows, bal, sort):
+def add_year(my_list):
     DATE_REGEX = r'\d{2}\w{3}'
+    AMOUNT_REGEX = r'\.\d{2}'
+    BAL_REGEX = r'\.\d{2}'
+    months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+    year = None
+    for i in range(len(my_list)):
+        elements = my_list[i].split()
+        if len(elements)>0:
+            if 'STATEMENT DATE' in my_list[i] and re.match(r'\d{2}/\d{2}/\d{4}',elements[-1]):
+                year = elements[-1][-4:]
+            elif re.match(DATE_REGEX, elements[0][0:5]) and  elements[0][-3:].upper() in months and re.match(BAL_REGEX, elements[-1][-3:]) and re.match(AMOUNT_REGEX, elements[-2][-3:]):
+                elements[0] = elements[0][0:5] + str(year)
+                my_list[i] = " ".join(elements)
+
+def AM_process_rows(rows, bal, sort):
+    DATE_REGEX = r'\d{2}\w{3}\d{4}'
     AMOUNT_REGEX = r'\.\d{2}'
     BAL_REGEX = r'\.\d{2}'
     KEYWORDS_TO_REMOVE = ["1. PRIVACY NOTICE / NOTIS PRIVASI", "ACCOUNT STATEMENT"]
@@ -30,7 +45,7 @@ def AM_process_rows(rows, bal, sort):
     for row in rows:
         elements = row.split()  # Split the row into elements
         if elements:
-            if re.match(DATE_REGEX, elements[0][0:5]) and  elements[0][-3:].upper() in months and re.match(BAL_REGEX, elements[-1][-3:]) and re.match(AMOUNT_REGEX, elements[-2][-3:]):
+            if re.match(DATE_REGEX, elements[0]) and re.match(BAL_REGEX, elements[-1][-3:]) and re.match(AMOUNT_REGEX, elements[-2][-3:]):
                 # Start of a new transaction
                 test = 1
                 if transaction is not None:
@@ -77,7 +92,7 @@ def AM_process_rows(rows, bal, sort):
 def AM_main(rows, bal, sort):
 
     KEYWORDS_TO_REMOVE = ["1. PRIVACY NOTICE / NOTIS PRIVASI", "ACCOUNT STATEMENT"]
-
+    add_year(rows)
     indices_containing = [i for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in KEYWORDS_TO_REMOVE)]
     indices_containing.sort(reverse=True)
 
@@ -108,6 +123,7 @@ def AM_main(rows, bal, sort):
     data = AM_process_rows(rows, bal, sort)
 
     df = pd.DataFrame.from_dict(data, orient='index')
+
     if sort == '-1':
         i = 0
         previous_balance = None
@@ -116,7 +132,7 @@ def AM_main(rows, bal, sort):
         current_month = None
         try:
             date_format = '%d%b%Y'
-            df['Date2'] = pd.to_datetime(df['Date']+ '2024', format=date_format)
+            df['Date2'] = pd.to_datetime(df['Date'], format=date_format)
             df['Month'] = df['Date2'].dt.month
             df = df.sort_values(by = ['Date2', 'Idx'], ascending = [True, False])
             df["Sign"] = df.apply(lambda _: ' ', axis=1)
@@ -151,7 +167,7 @@ def AM_main(rows, bal, sort):
         current_month = None
         try:
             date_format = '%d%b%Y'
-            df['Date2'] = pd.to_datetime(df['Date'] + '2024', format=date_format)
+            df['Date2'] = pd.to_datetime(df['Date'], format=date_format)
             df['Month'] = df['Date2'].dt.month
             df = df.sort_values(by = ['Date2', 'Idx'], ascending = [True, True])
             df["Sign"] = df.apply(lambda _: ' ', axis=1)

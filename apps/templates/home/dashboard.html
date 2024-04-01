@@ -18,6 +18,10 @@
         background-color: #ffaaaa;
     }
 
+    .active-page{
+        background-color: bisque;
+    }
+
 </style>
 {% endblock stylesheets %}
 {% block content %}
@@ -53,10 +57,10 @@
                                                     <div style="font-size: 0.875em;">Ending Balance:</b></div>
                                             </div>
                                             <div class="col-4 amount">
-                                                <div style="text-align: right; font-size: 0.875em;"><b>{{ '%.2f'|format(data['BEGINNING BALANCE']) }}</b></div>
-                                                <div style="text-align: right; font-size: 0.875em;"><b>{{ '%.2f'|format(data['CR_Amount']) }}</b></div>
-                                                <div style="text-align: right; font-size: 0.875em;"><b>{{ '%.2f'|format(data['DB_Amount']) }}</b></div>
-                                                <div style="text-align: right; font-size: 0.875em;"><b>{{ '%.2f'|format(data['ENDING BALANCE']) }}</b></div>
+                                                <div style="text-align: right; font-size: 0.875em;"><b>{{ '{:,.2f}'.format(data['BEGINNING BALANCE']) }}</b></div>
+                                                <div style="text-align: right; font-size: 0.875em;"><b>{{ '{:,.2f}'.format(data['CR_Amount']) }}</b></div>
+                                                <div style="text-align: right; font-size: 0.875em;"><b>{{ '{:,.2f}'.format(data['DB_Amount']) }}</b></div>
+                                                <div style="text-align: right; font-size: 0.875em;"><b>{{ '{:,.2f}'.format(data['ENDING BALANCE']) }}</b></div>
                                                 {% if ('{:.2f}'.format(data['BEGINNING BALANCE'] + data['CR_Amount'] - data['DB_Amount']) == '{:.2f}'.format(data['ENDING BALANCE'])) %}
                                                 <div style="text-align: right; display: flex; justify-content: flex-end;">
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="green" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
@@ -73,8 +77,8 @@
                                             </div>
                                             <div>
                                                 {% if average_daily_balances[month] is defined %}
-                                                    <div style="text-align: center; font-size: 0.875em;">Average Daily Balance: <b>RM {{ '%.2f'|format(average_daily_balances[month]) }}</b></div>
-                                                    <div style="text-align: center; font-size: 0.875em;">DSP ratio: <b>{{ '%.2f'|format(average_daily_balances[month]/FZ) }}</b></div>
+                                                    <div style="text-align: center; font-size: 0.875em;">Average Daily Balance: <b>RM {{ '{:,.2f}'.format(average_daily_balances[month]) }}</b></div>
+                                                    <div style="text-align: center; font-size: 0.875em;">DSP ratio: <b>{{ '{:,.2f}'.format(average_daily_balances[month]/FZ) }}</b></div>
                                                 {% endif %}
                                             </div>
                                         </div>
@@ -86,8 +90,8 @@
                     {% endfor %}
                 </div>
                 <div class="row">
-                    <div style="text-align: center;">Average Ending Balance: RM{{ '%.2f'|format(average_ending_balance) }}</div>
-                    <div style="text-align: center;">DSP ratio: {{ '%.2f'|format(average_ending_balance/FZ) }}</div>
+                    <div style="text-align: center;">Average Ending Balance: RM{{ '{:,.2f}'.format(average_ending_balance) }}</div>
+                    <div style="text-align: center;">DSP ratio: {{ '{:,.2f}'.format(average_ending_balance/FZ) }}</div>
                     <br>
                     <br>
                 </div>
@@ -255,14 +259,14 @@
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
                                             <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
                                           </svg>
-                                          {{ '%.2f'|format(data.credit_sum) }}
+                                          {{ '{:,.2f}'.format(data.credit_sum) }}
                                         
                                     </td>
                                     <td class="col-2" style="text-align: right; color: hotpink; font-size: 0.7rem;">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dash" viewBox="0 0 16 16">
                                             <path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8"/>
                                           </svg>
-                                          {{ '%.2f'|format(data.debit_sum) }}
+                                          {{ '{:,.2f}'.format(data.debit_sum) }}
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -313,6 +317,7 @@
         // Update active page styles
         var pageLinks = document.querySelectorAll('.page-link');
         pageLinks.forEach(function (link, index) {
+            console.log(index+1)
             if (index + 1 === page) {
                 link.classList.add('active-page');
             } else {
@@ -323,8 +328,7 @@
 
     // Show the first page by default
     showPage(1);
-</script>
-<script>
+
     // Get chart data from the Flask route
     var chartData = {{ chart_data|tojson|safe }};
 
