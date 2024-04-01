@@ -31,9 +31,15 @@ def add_year(my_list):
         elements = my_list[i].split()
         if len(elements)>0:
             if 'Statement Date' in my_list[i] and re.match(r'\d{4}',elements[-1]):
+                minus = False
+                if 'Jan' in my_list[i]:
+                    minus = True
                 year = elements[-1]
             elif re.match(DATE_REGEX, elements[0]) and re.match(AMOUNT_REGEX, elements[-2][-4:]):
-                elements[0] = elements[0] + '/' + str(year)
+                if minus and elements[0][-2:]=="12":
+                    elements[0] = elements[0] + '/' + str(int(year)-1)
+                else:
+                    elements[0] = elements[0] + '/' + str(year)
                 my_list[i] = " ".join(elements)
 
 def PBB_process_rows(rows, bal, sort):
@@ -184,7 +190,7 @@ def PBB_main(rows, bal, sort):
             bal = sorted(bal, key=lambda x: x[1])
             for index, row in df.iterrows():
                 date_str = row['Month']
-                if current_month is None or date_str.month != current_month:
+                if current_month is None:
                     # Update current month and reset previous balance
                     current_month = date_str.month
                     find_balance = next((item[0] for item in bal if item[1] == current_month), None)
@@ -219,7 +225,7 @@ def PBB_main(rows, bal, sort):
             df["Amt"] = df.apply(lambda _: ' ', axis=1)
             for index, row in df.iterrows():
                 date_str = row['Month']
-                if current_month is None or date_str != current_month:
+                if current_month is None:
                     # Update current month and reset previous balance
                     current_month = date_str
                     find_balance = next((item[0] for item in bal if item[1] == current_month), None)

@@ -836,7 +836,6 @@ def analysis():
                         text = f'{text} \n{page.extract_text()}'
 
                 rows = text.split('\n')
-                print(rows)
 
                 if bank_selected == "MBB":
                     bal = [(s, rows[i+1]) for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in  ['BEGINNING BALANCE'])]
