@@ -17,7 +17,7 @@ def plot_to_html_image(df, bal):
                 break
     updated_data['Balance'].fillna(method='ffill', inplace=True)
     # Calculate average daily balance for each month
-    average_daily_balances = updated_data.groupby(updated_data['Date2'].dt.strftime('%m%y').astype(int))['Balance'].mean().to_dict()
+    average_daily_balances = updated_data.groupby(updated_data['Date2'].dt.strftime('%b %y'))['Balance'].mean().to_dict()
 
     # Updated data with all days included
     chart_data = {

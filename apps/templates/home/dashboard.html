@@ -287,16 +287,13 @@
     function showPage(page) {
         var tableId = 'transactions-table';
         var table = document.getElementById(tableId);
-        console.log(table)
         var rows = table.querySelectorAll('#' + tableId + ' tbody tr');
-        console.log(rows)
         var paginationElement = document.getElementById('myPagination');
         var startIndex = (page - 1) * 15;
         var endIndex = startIndex + 15;
         var warning_index = {{ warning_index|tojson|safe }};
         var p2p_index = {{ p2p|tojson|safe }};
         paginationElement.style.display = 'flex';
-        console.log(p2p_index);
         // Adjust endIndex for the last page
         endIndex = Math.min(endIndex, rows.length);
 
@@ -317,7 +314,6 @@
         // Update active page styles
         var pageLinks = document.querySelectorAll('.page-link');
         pageLinks.forEach(function (link, index) {
-            console.log(index+1)
             if (index + 1 === page) {
                 link.classList.add('active-page');
             } else {
@@ -381,7 +377,6 @@
     filter = input.value.toUpperCase();
     paginationElement.style.display = 'none';
     var rows = table.querySelectorAll('table tbody tr');
-    console.log(filter)
     if (filter == ""){
         showPage(1)
     }else{
