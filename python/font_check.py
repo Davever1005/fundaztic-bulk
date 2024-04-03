@@ -49,7 +49,7 @@ def extract_fonts(pdf_file):
                 font_data.append(process_fonts(page_resource))
         return font_data 
     
-def draw_rectangles(pdf_path, results, unique_list):
+def draw_rectangles(pdf_path, results, unique_list, empty):
     # Open the original PDF
     reader = PdfReader(pdf_path)
     writer = PdfWriter()
@@ -57,6 +57,11 @@ def draw_rectangles(pdf_path, results, unique_list):
     fraud = []
     for result in results:
         line_text, line_formats, line_bbox = result[1]
+        if empty:
+            for idx, font in enumerate(line_formats):
+                if  '+' in font:
+                    line_formats[idx] = font.split('+')[1]
+
         if any(font not in unique_list for font in line_formats):
             fraud.append(result[0] + 1)
             # Draw a rectangle for each line of text

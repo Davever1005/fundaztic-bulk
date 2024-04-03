@@ -946,21 +946,54 @@ def fraud_process():
                 results.append((pagenum, result))
     
     font_data = extract_fonts(file_path)
-    if bank_selected == "RHB":
-        font = [font_base for fonts in font_data for font_id, font_base in fonts.items() if font_id.startswith("/F") or (font_id.startswith("/V") and font_id.endswith("F"))]
-        font.append("Helvetica")
+    print(font_data)
+    print(bank_selected)
+    empty=False
+    if bank_selected == "MBB":
+        fonts = [font_base for fonts in font_data for font_id, font_base in fonts.items() if font_id.startswith("/F")]
+        if len(fonts) < 3:
+            empty = True
+            fonts = ["Tahoma", "NSimSun", "MicrosoftSansSerif"]
+    elif bank_selected == "CIMB":
+        fonts = [font_base for fonts in font_data for font_id, font_base in fonts.items() if font_id.startswith("/F")]
+        if len(fonts) < 3:
+            empty = True
+            fonts = ["Helvetica", "Helvetica-Bold", "Helvetica-Oblique", "Helvetica-BoldOblique"]
+    elif bank_selected == "HLBB":
+        fonts = [font_base for fonts in font_data for font_id, font_base in fonts.items() if font_id.startswith("/F")]
+        if len(fonts) < 3:
+            empty = True
+            fonts = ["Dax-Regular", "Dax-Bold", "Dax-Italic", "Dax-BoldItalic"]
+    elif bank_selected == "BANK ISLAM":
+        fonts = [font_base for fonts in font_data for font_id, font_base in fonts.items() if font_id.startswith("/F")]
+        if len(fonts) < 3:
+            empty = True
+            fonts = ["Helvetica", "Helvetica-Bold", "Helvetica-Oblique", "Helvetica-BoldOblique"]
+    elif bank_selected == "UOB":
+        fonts = [font_base for fonts in font_data for font_id, font_base in fonts.items() if font_id.startswith("/F")]
+        if len(fonts) < 3:
+            empty = True
+            fonts = ["Helvetica", "Helvetica-Bold", "Helvetica-Oblique", "Helvetica-BoldOblique"]
+    elif bank_selected == "RHB":
+        fonts = [font_base for fonts in font_data for font_id, font_base in fonts.items() if font_id.startswith("/F") or font_id.startswith("/V")]
+    elif bank_selected == "ALLIANCE":
+        fonts = [font_base for fonts in font_data for font_id, font_base in fonts.items() if font_id.startswith("/F")]
+        if len(fonts) < 3:
+            empty = True
+            fonts = ["ArialMT", "Arial-BoldMT", "Arial-ItalicMT", "Arial-BoldItalicMT"]
     elif bank_selected =="PBB" or bank_selected =="OCBC" or bank_selected =="AM BANK":
-        font = []
+        fonts = []
     else:
-        font = [font_base for fonts in font_data for font_id, font_base in fonts.items() if font_id.startswith("/F")]
-    unique_list = list(set(font))
+        fonts = [font_base for fonts in font_data for font_id, font_base in fonts.items() if font_id.startswith("/F")]
+    unique_list = list(set(fonts))
+    print(unique_list)
     
     if len(unique_list) > 1:
-        fraud_json = draw_rectangles(file_path, results, unique_list)
+        fraud_json = draw_rectangles(file_path, results, unique_list, empty)
     elif bank_selected =="PBB" or bank_selected =="OCBC" or bank_selected =="AM BANK":
         fraud_json = json.dumps({"Warning": "Font detection is currently not available for Public Bank, OCBC and Am bank."})
     else:
-        fraud_json = json.dumps({"Warning": "Please verify the authenticity of this PDF as font differences may indicate possible changes."})
+        fraud_json = json.dumps({"Warning": "The system has detected modifications in the PDF. These alterations may not necessarily pertain to changes in the transaction record; they could involve other aspects."})
 
     meta = metadata(file_path)
     if len(meta) > 0:
