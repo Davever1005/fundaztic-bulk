@@ -993,7 +993,7 @@ def fraud_process():
     elif bank_selected =="PBB" or bank_selected =="OCBC" or bank_selected =="AM BANK":
         fraud_json = json.dumps({"Warning": "Font detection is currently not available for Public Bank, OCBC and Am bank."})
     else:
-        fraud_json = json.dumps({"Warning": "The system has detected modifications in the PDF. These alterations may not necessarily pertain to changes in the transaction record; they could involve other aspects."})
+        fraud_json = json.dumps({"Warning": "The system detects that the PDF has been modified, but cannot pinpoint the modified content. These alterations may not necessarily pertain to changes in the transaction record; they could involve other aspects."})
 
     meta = metadata(file_path)
     if len(meta) > 0:
