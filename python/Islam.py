@@ -122,7 +122,7 @@ def ISLAM_main(rows, bal, sort):
             date_format = '%d/%m/%y'
             df['Date2'] = pd.to_datetime(df['Date'], format=date_format)
             df['Month'] = df['Date2'].dt.month
-            df = df.sort_values(by = ['Month', 'Idx'], ascending = [True, False])
+            df = df.sort_values(by = ['Date2', 'Idx'], ascending = [True, False])
             df["Sign"] = df.apply(lambda _: ' ', axis=1)
             df["Amt"] = df.apply(lambda _: ' ', axis=1)
             for index, row in df.iterrows():
@@ -157,7 +157,7 @@ def ISLAM_main(rows, bal, sort):
             date_format = '%d/%m/%y'
             df['Date2'] = pd.to_datetime(df['Date'], format=date_format)
             df['Month'] = df['Date2'].dt.month
-            df = df.sort_values(by = ['Month', 'Idx'], ascending = [True, True])
+            df = df.sort_values(by = ['Date2', 'Idx'], ascending = [True, True])
             df["Sign"] = df.apply(lambda _: ' ', axis=1)
             df["Amt"] = df.apply(lambda _: ' ', axis=1)
             for index, row in df.iterrows():

@@ -72,9 +72,9 @@ def check_balance_within_month(df, bal, sort, bank_selected):
         df['Idx'] = df.index
         df['Idx'] = pd.to_numeric(df['Idx'], errors='coerce')
         if sort == 1:
-            df = df.sort_values(by = ['Month', 'Idx'], ascending = [True, True])
+            df = df.sort_values(by = ['Date2', 'Idx'], ascending = [True, True])
         elif sort == -1:
-            df = df.sort_values(by = ['Month', 'Idx'], ascending = [True, False])
+            df = df.sort_values(by = ['Date2', 'Idx'], ascending = [True, False])
         prev_month = None
         go = 0
         for index, row in df.iterrows():
