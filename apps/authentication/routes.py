@@ -52,6 +52,7 @@ from python.ALLIANCE import ALL_main
 from python.type import type
 from python.repetition import find_repeat
 from python.font_check import text_extraction, process_fonts, extract_fonts, draw_rectangles
+from python.cid import cidToChar
 import re
 import os
 from fuzzywuzzy import fuzz
@@ -837,6 +838,15 @@ def analysis():
 
                 rows = text.split('\n')
 
+                updated_rows = []
+                for x in rows:
+                    if x != '' and x != '(cid:3)':         # merely to compact the output
+                        abc = re.findall(r'\(cid\:\d+\)',x)
+                        if len(abc) > 0:
+                            for cid in abc: 
+                                x=x.replace(cid, cidToChar(cid))
+                        updated_rows.append(x)
+                rows = updated_rows
                 if bank_selected == "MBB":
                     bal = [(s, rows[i+1]) for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in  ['BEGINNING BALANCE'])]
                     df, bal = MBB_main(rows,bal, 1)
