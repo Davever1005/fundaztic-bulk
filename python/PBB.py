@@ -1,5 +1,6 @@
 import re
 import pandas as pd
+from datetime import datetime, timedelta
 
 
 def PBB_find_next_one(my_list, index):
@@ -35,15 +36,33 @@ def add_year(my_list):
                 if 'Jan' in my_list[i]:
                     minus = True
                 year = elements[-1]
-            elif re.match(DATE_REGEX, elements[0]) and re.match(AMOUNT_REGEX, elements[-2][-4:]):
+            elif (re.match(DATE_REGEX, elements[0]) and re.match(AMOUNT_REGEX, elements[-2][-4:])) or 'balance from last statement' in my_list[i].lower():
                 if minus and elements[0][-2:]=="12":
                     elements[0] = elements[0] + '/' + str(int(year)-1)
                 else:
                     elements[0] = elements[0] + '/' + str(year)
                 my_list[i] = " ".join(elements)
 
-def PBB_process_rows(rows, bal, sort):
+def add_date(my_list):
     DATE_REGEX = r'\d{2}/\d{2}'
+    AMOUNT_REGEX = r'\d\.\d{2}'
+    date = None
+    for i in range(len(my_list)):
+        elements = my_list[i].split()
+        if len(elements)>3:
+            print(elements)
+            if re.match(AMOUNT_REGEX, elements[-2][-4:]):
+                if re.match(DATE_REGEX, elements[0]):
+                    date = elements[0]
+                    if 'balance from last statement' in my_list[i].lower():
+                        if date is not None:
+                            date = (datetime.strptime(date, '%d/%m/%Y') + timedelta(days=1)).strftime('%d/%m/%Y')
+                else:
+                    my_list[i] = str(date) + ' ' + str(my_list[i])
+                    print(my_list[i])
+
+def PBB_process_rows(rows, bal, sort):
+    DATE_REGEX = r'\d{2}/\d{2}/\d{4}'
     AMOUNT_REGEX = r'\d\.\d{2}'
     KEYWORDS_TO_REMOVE = ["Penyata ini dicetak melalui komputer", "Baki Harian Dan Penutup Meliputi Semua"]
 
@@ -107,11 +126,12 @@ def PBB_process_rows(rows, bal, sort):
     return data
 
 
-def PBB_main(rows, bal, sort):
+def PBB_main(rows, sort):
     DATE_REGEX = r'\d{2}/\d{2}'
     KEYWORDS_TO_REMOVE = ["Penyata ini dicetak melalui komputer", "Baki Harian Dan Penutup Meliputi Semua"]
     add_year(rows)
-
+    add_date(rows)
+    bal = [(s, rows[i+1]) for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in  ['Balance From Last Statement'])]
     indices_containing = [i for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in KEYWORDS_TO_REMOVE)]
     indices_containing.sort(reverse=True)
 
@@ -128,13 +148,15 @@ def PBB_main(rows, bal, sort):
     try:
         date_format = '%d/%m/%Y'
         for i in range(len(bal)):
-            date_string = bal[i][1].split()[0]
-
+            date_string = bal[i][0].split()[0]
             # Convert the date string to pandas datetime object
             date_object = pd.to_datetime(date_string, format=date_format)
 
             # Extract the month from the pandas datetime object
-            month_only = date_object.month
+            month_only = date_object.month + 1
+
+            if month_only > 12:
+                month_only = month_only -12
 
             if 'OD' in bal[i][0].split()[-1]:
                 if bal[i][0].split()[-1] == 'OD':
@@ -146,26 +168,6 @@ def PBB_main(rows, bal, sort):
     except:
         pass
 
-    try:
-        date_format = '%d/%m'
-        for i in range(len(bal)):
-            date_string = bal[i][1].split()[0]
-
-            # Convert the date string to pandas datetime object
-            date_object = pd.to_datetime(date_string, format=date_format)
-
-            # Extract the month from the pandas datetime object
-            month_only = date_object.month
-
-            if 'OD' in bal[i][0].split()[-1]:
-                if bal[i][0].split()[-1] == 'OD':
-                    bal[i] = (" ".join(bal[i][0].split()[0:-2]) + ' -' + bal[i][0].split()[-2],month_only)
-                else:
-                    bal[i] = (" ".join(bal[i][0].split()[0:-1]) + ' -' + bal[i][0].split()[-1].replace("OD", ""),month_only)
-            new_bal.append((bal[i][0].split()[-1].replace(',', ""), month_only))
-        bal = sorted(bal, key=lambda x: x[1])
-    except Exception as e:
-        print(e)
     bal = new_bal
     
     rows = [item for item in rows if 'Closing Balance' not in item]
@@ -228,6 +230,7 @@ def PBB_main(rows, bal, sort):
                 if current_month is None:
                     # Update current month and reset previous balance
                     current_month = date_str
+                    print(bal)
                     find_balance = next((item[0] for item in bal if item[1] == current_month), None)
                     if find_balance:
                         previous_balance = find_balance
@@ -243,9 +246,9 @@ def PBB_main(rows, bal, sort):
                     df.loc[index, "Amt"] = round(float(A), 2)
                 previous_balance = row['Balance']
         except Exception as e:
-            pass
-    
-    df['Amount2'] = df.Amt * df.Sign
+            print(e)
 
+    df['Amount2'] = df.Amt * df.Sign
+    
     return df, bal
 

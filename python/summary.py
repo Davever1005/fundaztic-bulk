@@ -1,15 +1,18 @@
 import pandas as pd
 
-def summary_main(df):
+def summary_main(df, bal, bank_selected):
 
     dict_data={}
     # Convert 'Amount' column to numeric (remove commas and convert to float)
     df['Amount2'] = df['Amount2'].replace('[\$,]', '', regex=True).astype(float)
 
     df['Month_Year'] = df['Date2'].dt.strftime('%b %y')
-
     for name, group in df.groupby(df['Month_Year']):
-        begin = group.iloc[0]['Balance'] - group.iloc[0]['Amount2']
+        if len(bal) == 0 or bank_selected=='HLBB':
+            begin = group.iloc[0]['Balance'] - group.iloc[0]['Amount2']
+        else:
+            begin = float(next((item[0] for item in bal if item[1] == group.iloc[0]['Month']), 0))
+            print(begin)
         cr_count = group[group['Sign'] == 1]['Amount2'].count()
         cr_sum = group[group['Sign'] == 1]['Amount2'].sum()
         db_count = group[group['Sign'] == -1]['Amount2'].count()

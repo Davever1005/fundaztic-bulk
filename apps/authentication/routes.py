@@ -66,6 +66,7 @@ from pypdf.generic import ArrayObject, FloatObject
 from pdfminer.pdfparser import PDFParser
 from pdfminer.pdfdocument import PDFDocument
 from python.metadata import metadata
+from datetime import datetime, timedelta
 
 @blueprint.route('/')
 def route_default():
@@ -856,8 +857,7 @@ def analysis():
                     df, bal = CIMB_main(rows, bal, sort)
 
                 elif bank_selected == "PBB":
-                    bal = [(s, rows[i+1]) for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in  ['Balance From Last Statement'])]
-                    df, bal = PBB_main(rows, bal, sort)
+                    df, bal = PBB_main(rows, sort)
 
                 elif bank_selected == "RHB":
                     bal = [(s, rows[i+1]) for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in  ['B/FBALANCE', 'B/F BALANCE'])]
@@ -895,7 +895,7 @@ def analysis():
             p2p_df = final_df[final_df.apply(lambda row: any(keyword.lower() in row['Description'].lower() for keyword in p2p_keywords), axis=1)]
             p2p_indices_list = (p2p_df.index.astype(int)).tolist()
             warning, warning_index = check_balance_within_month(df, bal, sort, bank_selected)
-            summary_data = summary_main(df)
+            summary_data = summary_main(df, bal, bank_selected)
             chart_data, average_daily_balances = plot_to_html_image(df, bal)
             type_data = type(df)
             repeat = find_repeat(final_df)

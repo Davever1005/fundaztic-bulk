@@ -98,6 +98,12 @@ def OCBC_main(rows, bal, sort):
             # Extract the month from the pandas datetime object
             month_only = date_object.month
 
+            if 'DR' in bal[i][0].split()[-1]:
+                if bal[i][0].split()[-1] == 'DR':
+                    bal[i] = ('-' + bal[i][0].split()[-2],month_only)
+                else:
+                    bal[i] = ('-' + bal[i][0].split()[-1].replace("DR", ""),month_only)
+
             # Create a new tuple with the month
             bal[i] = (bal[i][0].split()[-1].replace(",", ""), month_only)
         bal = sorted(bal, key=lambda x: x[1])

@@ -147,7 +147,6 @@ def MBB_main(rows, bal, sort):
     DATE_REGEX = r'\d{2}/\d{2}'
     indices_containing = [i for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in KEYWORDS_TO_REMOVE )]
     indices_containing.sort(reverse=True)
-
     add_year(rows)
 
     for index in indices_containing:
