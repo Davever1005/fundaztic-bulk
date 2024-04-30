@@ -10,6 +10,7 @@ def PBB_find_next_one(my_list, index):
     date = ""
     for i in range(index + 1, len(my_list)):
         elements = my_list[i].split()
+        
         if re.match(DATE_REGEX, my_list[i][0:5]):
             date = my_list[i][0:5]
         if my_list[i] == 'DATE TRANSACTION DEBIT CREDIT BALANCE':
@@ -30,18 +31,22 @@ def add_year(my_list):
     year = None
     for i in range(len(my_list)):
         elements = my_list[i].split()
+        print(f'add_year: {elements}')
         if len(elements)>0:
-            if 'Statement Date' in my_list[i] and re.match(r'\d{4}',elements[-1]):
-                minus = False
-                if 'Jan' in my_list[i]:
-                    minus = True
-                year = elements[-1]
-            elif (re.match(DATE_REGEX, elements[0]) and re.match(AMOUNT_REGEX, elements[-2][-4:])) or 'balance from last statement' in my_list[i].lower():
-                if minus and elements[0][-2:]=="12":
-                    elements[0] = elements[0] + '/' + str(int(year)-1)
-                else:
-                    elements[0] = elements[0] + '/' + str(year)
-                my_list[i] = " ".join(elements)
+            try:
+                if 'Statement Date' in my_list[i] and re.match(r'\d{4}',elements[-1]):
+                    minus = False
+                    if 'Jan' in my_list[i]:
+                        minus = True
+                    year = elements[-1]
+                elif (re.match(DATE_REGEX, elements[0]) and re.match(AMOUNT_REGEX, elements[-2][-4:])) or 'balance from last statement' in my_list[i].lower():
+                    if minus and elements[0][-2:]=="12":
+                        elements[0] = elements[0] + '/' + str(int(year)-1)
+                    else:
+                        elements[0] = elements[0] + '/' + str(year)
+                    my_list[i] = " ".join(elements)
+            except Exception as e:
+                pass
 
 def add_date(my_list):
     DATE_REGEX = r'\d{2}/\d{2}'
@@ -49,17 +54,19 @@ def add_date(my_list):
     date = None
     for i in range(len(my_list)):
         elements = my_list[i].split()
+        print(f'add_date: {elements}')
         if len(elements)>3:
-            print(elements)
-            if re.match(AMOUNT_REGEX, elements[-2][-4:]):
-                if re.match(DATE_REGEX, elements[0]):
-                    date = elements[0]
-                    if 'balance from last statement' in my_list[i].lower():
-                        if date is not None:
-                            date = (datetime.strptime(date, '%d/%m/%Y') + timedelta(days=1)).strftime('%d/%m/%Y')
-                else:
-                    my_list[i] = str(date) + ' ' + str(my_list[i])
-                    print(my_list[i])
+            try:
+                if re.match(AMOUNT_REGEX, elements[-2][-4:]):
+                    if re.match(DATE_REGEX, elements[0]):
+                        date = elements[0]
+                        if 'balance from last statement' in my_list[i].lower():
+                            if date is not None:
+                                date = (datetime.strptime(date, '%d/%m/%Y') + timedelta(days=1)).strftime('%d/%m/%Y')
+                    else:
+                        my_list[i] = str(date) + ' ' + str(my_list[i])
+            except Exception as e:
+                pass
 
 def PBB_process_rows(rows, bal, sort):
     DATE_REGEX = r'\d{2}/\d{2}/\d{4}'
@@ -110,6 +117,46 @@ def PBB_process_rows(rows, bal, sort):
                 else:
                     test = 0
 
+            elif len(elements)==2:
+                if (re.match(AMOUNT_REGEX, elements[-1][-4:]) and re.match(AMOUNT_REGEX, elements[-2][-4:])) or (re.match(AMOUNT_REGEX, elements[-2][-4:]) and re.match('OD', elements[-1])):
+                    test = 1
+                    if transaction is not None:
+                        data[f"{transaction_number}"] = transaction
+                        transaction_number += 1
+                    if 'OD' in elements[-1]:
+                        balance = -float(elements[-2].replace(",", ""))
+                        amt = float(elements[-3].replace(",", ""))
+                    else:
+                        balance = float(elements[-1].replace(",", ""))
+                        amt = float(elements[-2].replace(",", ""))
+                    if re.match(DATE_REGEX, elements[0]):
+                        date = elements[0]
+                    # Accumulate description from consecutive rows
+                    description = ""
+                    for desc_row in rows[rows.index(row) + 1:]:
+                        desc_elements = desc_row.split()
+                        print(f'loop desc: {desc_elements}')
+                        if desc_elements and ((re.match(AMOUNT_REGEX, desc_elements[-1][-4:]) and re.match(AMOUNT_REGEX, desc_elements[-2][-4:])) or (re.match(AMOUNT_REGEX, desc_elements[-2][-4:]) and re.match('OD', desc_elements[-1]))):
+                            print('here')
+                            break  # Stop accumulating description if a new transaction starts
+                        description += " ".join(desc_elements) + " "
+                    test=0
+                    transaction = {
+                        "Date": date,
+                        "Description": description,
+                        "Amount": amt,
+                        "Balance": round(float(balance), 2)
+                    }
+                elif test == 1 and all(s not in "".join(elements) for s in KEYWORDS_TO_REMOVE):
+                    print(elements)
+                    # This is a continuation of the description, skip if "**"
+                    if "Description" not in transaction:
+                        transaction["Description"] = " ".join(elements)
+                    else:
+                        transaction["Description"] += " " + " ".join(elements)
+                else:
+                    test = 0
+
             elif test == 1 and all(s not in "".join(elements) for s in KEYWORDS_TO_REMOVE):
                 # This is a continuation of the description, skip if "**"
                 if "Description" not in transaction:
@@ -134,7 +181,7 @@ def PBB_main(rows, sort):
     bal = [(s, rows[i+1]) for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in  ['Balance From Last Statement'])]
     indices_containing = [i for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in KEYWORDS_TO_REMOVE)]
     indices_containing.sort(reverse=True)
-
+    print(bal)
     new_bal = []
     for index in indices_containing:
         if 0 <= index < len(rows):
@@ -176,6 +223,7 @@ def PBB_main(rows, sort):
     rows = [item for item in rows if 'Balance C/F' not in item]
     data = PBB_process_rows(rows, bal, sort)
     df = pd.DataFrame.from_dict(data, orient='index')
+    print(df)
     if sort == '-1':
         i = 0
         previous_balance = None
@@ -184,7 +232,10 @@ def PBB_main(rows, sort):
         current_month = None
         try:
             date_format = '%d/%m/%Y'
-            df['Date2'] = pd.to_datetime(df['Date'], format=date_format)
+            df['Date2'] = pd.to_datetime(df['Date'], format=date_format, errors='coerce')
+            # Split DataFrame into two based on whether conversion was successful or not
+            df_null_date = df[df['Date2'].isnull()]
+            df = df.dropna(subset=['Date2'])  # DataFrame with valid dates
             df['Month'] = df['Date2'].dt.month
             df = df.sort_values(by = ['Date2', 'Idx'], ascending = [True, False])
             df["Sign"] = df.apply(lambda _: ' ', axis=1)
@@ -220,7 +271,9 @@ def PBB_main(rows, sort):
         current_month = None
         try:
             date_format = '%d/%m/%Y'
-            df['Date2'] = pd.to_datetime(df['Date'], format=date_format)
+            df['Date2'] = pd.to_datetime(df['Date'], format=date_format, errors='coerce')
+            df_null_date = df[df['Date2'].isnull()]
+            df = df.dropna(subset=['Date2'])  # DataFrame with valid dates
             df['Month'] = df['Date2'].dt.month
             df = df.sort_values(by = ['Date2', 'Idx'], ascending = [True, True])
             df["Sign"] = df.apply(lambda _: ' ', axis=1)
@@ -230,7 +283,6 @@ def PBB_main(rows, sort):
                 if current_month is None:
                     # Update current month and reset previous balance
                     current_month = date_str
-                    print(bal)
                     find_balance = next((item[0] for item in bal if item[1] == current_month), None)
                     if find_balance:
                         previous_balance = find_balance
@@ -250,5 +302,5 @@ def PBB_main(rows, sort):
 
     df['Amount2'] = df.Amt * df.Sign
     
-    return df, bal
+    return df, bal, df_null_date
 

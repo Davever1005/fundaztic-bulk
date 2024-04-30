@@ -123,7 +123,9 @@ def OCBC_main(rows, bal, sort):
             current_month = None
             try:
                 date_format = '%d%b%Y'
-                df['Date2'] = pd.to_datetime(df['Date'], format=date_format)
+                df['Date2'] = pd.to_datetime(df['Date'], format=date_format, errors='coerce')
+                df_null_date = df[df['Date2'].isnull()]
+                df = df.dropna(subset=['Date2'])  # DataFrame with valid dates
                 df['Month'] = df['Date2'].dt.month
                 df = df.sort_values(by = ['Date2', 'Idx'], ascending = [True, False])
                 df["Sign"] = df.apply(lambda _: ' ', axis=1)
@@ -158,7 +160,9 @@ def OCBC_main(rows, bal, sort):
             current_month = None
             try:
                 date_format = '%d%b%Y'
-                df['Date2'] = pd.to_datetime(df['Date'], format=date_format)
+                df['Date2'] = pd.to_datetime(df['Date'], format=date_format, errors='coerce')
+                df_null_date = df[df['Date2'].isnull()]
+                df = df.dropna(subset=['Date2'])  # DataFrame with valid dates
                 df['Month'] = df['Date2'].dt.month
                 df = df.sort_values(by = ['Date2', 'Idx'], ascending = [True, True])
                 df["Sign"] = df.apply(lambda _: ' ', axis=1)
@@ -190,4 +194,4 @@ def OCBC_main(rows, bal, sort):
     df['Amount2'] = df.Amt * df.Sign
 
 
-    return df, bal
+    return df, bal, df_null_date

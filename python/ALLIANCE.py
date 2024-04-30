@@ -44,7 +44,6 @@ def ALL_main(df_list, sort):
     bal = [(row['Balance'], pd.to_datetime(df_with_balance.at[index + 1, 'Date'], errors='coerce', dayfirst=True).month, index) for index, row in df_with_balance[df_with_balance['Description'].str.contains('BEGINNING BALANCE', na=False)].iterrows()]
 
     df['Date2'] = pd.to_datetime(df['Date'], errors='coerce', format='%d%m%y')
-    df.to_csv('test.csv')
     df = df[df['Date2'].notna() & ((df['Credit'] != "") | (df['Debit'] != "")) & (df['Balance'] != "")]
     df = df.reset_index(drop=True)
 

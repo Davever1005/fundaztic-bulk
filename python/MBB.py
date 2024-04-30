@@ -338,7 +338,8 @@ TOTAL CREDIT :
     df = pd.DataFrame.from_dict(data, orient='index')
     df['Date2'] = pd.to_datetime(df['Date'], errors='coerce', format='%d/%m/%Y')
     df['Date2'].fillna(pd.to_datetime(df['Date'], errors='coerce', format='%d/%m/%y'), inplace=True)
-
+    df_null_date = df[df['Date2'].isnull()]
+    df = df.dropna(subset=['Date2'])  # DataFrame with valid dates
     df['Month'] = df['Date2'].dt.month
     df['Idx'] = df.index
     df['Idx'] = pd.to_numeric(df['Idx'], errors='coerce')
@@ -350,5 +351,5 @@ TOTAL CREDIT :
     bal = sorted(bal, key=lambda x: x[1])
     
     df['Amount2'] = df.Amt * df.Sign
-    return df, bal
+    return df, bal, df_null_date
 

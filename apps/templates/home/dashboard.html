@@ -1,11 +1,10 @@
 {% extends "layouts/base.html" %}
 
-{% block title %}{% endblock %} 
+{% block title %}{% endblock %}
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
 <style>
-
     th {
         text-align: left;
     }
@@ -18,85 +17,106 @@
         background-color: #ffaaaa;
     }
 
-    .active-page{
-        background-color: bisque;
+    .active-page {
+        border: blue 3px solid;
     }
 
+    .fault-page {
+        background-color: #ffaaaa;
+    }
+
+    .p2p-page {
+        background-color: bisque;
+    }
 </style>
 {% endblock stylesheets %}
 {% block content %}
-    <div class="py-4">
-        <button class="btn btn-gray-800 d-inline-flex align-items-center me-2 dropdown-toggle">
-            {{ file_path }}
-        </button>
-    </div>
-    <div class="row">
-        <div class="col-12 mb-4">
-            <br>
-            <br>
-            <div class="card bg-yellow-100 border-0 shadow">
-                <div class="card-body p-2">
-                    <canvas id="myChart" style="display: block;
+<div class="py-4">
+    <button class="btn btn-gray-800 d-inline-flex align-items-center me-2 dropdown-toggle">
+        {{ file_path }}
+    </button>
+</div>
+<div class="row">
+    <div class="col-12 mb-4">
+        <br>
+        <br>
+        <div class="card bg-yellow-100 border-0 shadow">
+            <div class="card-body p-2">
+                <canvas id="myChart" style="display: block;
                     position: relative;
                     width: 100%;
                     height: 500px;"></canvas>
-                </div>
-                <div class="row" style="padding-left: 1.5rem; padding-right: 1.5rem;">
-                    {% for month, data in summary_data.items() %}
-                    <div class="col-12 col-sm-6 col-xl-4 mb-4">
-                        <div class="card border-0 shadow">
-                            <div class="card-body">
-                                <div class="row d-block d-xl-flex align-items-center">
-                                    <h2 class="h5">{{ month }}</h2>
-                                    <div class="col-12">
-                                        <div class="row">
-                                            <div class="col-8">
-                                                    <div style="font-size: 0.875em;">Begining Balance:</div>
-                                                    <div style="font-size: 0.875em;"><b>{{ data['CR_Transactions'] }}</b> Credit Transactions:</div>
-                                                    <div style="font-size: 0.875em;"><b>{{ data['DB_Transactions'] }}</b> Debit Transactions:</div>
-                                                    <div style="font-size: 0.875em;">Ending Balance:</b></div>
+            </div>
+            <div class="row" style="padding-left: 1.5rem; padding-right: 1.5rem;">
+                {% for month, data in summary_data.items() %}
+                <div class="col-12 col-sm-6 col-xl-4 mb-4">
+                    <div class="card border-0 shadow">
+                        <div class="card-body">
+                            <div class="row d-block d-xl-flex align-items-center">
+                                <h2 class="h5">{{ month }}</h2>
+                                <div class="col-12">
+                                    <div class="row">
+                                        <div class="col-8">
+                                            <div style="font-size: 0.875em;">Begining Balance:</div>
+                                            <div style="font-size: 0.875em;"><b>{{ data['CR_Transactions'] }}</b> Credit
+                                                Transactions:</div>
+                                            <div style="font-size: 0.875em;"><b>{{ data['DB_Transactions'] }}</b> Debit
+                                                Transactions:</div>
+                                            <div style="font-size: 0.875em;">Ending Balance:</b></div>
+                                        </div>
+                                        <div class="col-4 amount">
+                                            <div style="text-align: right; font-size: 0.875em;"><b>{{
+                                                    '{:,.2f}'.format(data['BEGINNING BALANCE']) }}</b></div>
+                                            <div style="text-align: right; font-size: 0.875em;"><b>{{
+                                                    '{:,.2f}'.format(data['CR_Amount']) }}</b></div>
+                                            <div style="text-align: right; font-size: 0.875em;"><b>{{
+                                                    '{:,.2f}'.format(data['DB_Amount']) }}</b></div>
+                                            <div style="text-align: right; font-size: 0.875em;"><b>{{
+                                                    '{:,.2f}'.format(data['ENDING BALANCE']) }}</b></div>
+                                            {% if ('{:.2f}'.format(data['BEGINNING BALANCE'] + data['CR_Amount'] -
+                                            data['DB_Amount']) == '{:.2f}'.format(data['ENDING BALANCE'])) %}
+                                            <div style="text-align: right; display: flex; justify-content: flex-end;">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                    fill="green" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
+                                                    <path
+                                                        d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
+                                                </svg>
                                             </div>
-                                            <div class="col-4 amount">
-                                                <div style="text-align: right; font-size: 0.875em;"><b>{{ '{:,.2f}'.format(data['BEGINNING BALANCE']) }}</b></div>
-                                                <div style="text-align: right; font-size: 0.875em;"><b>{{ '{:,.2f}'.format(data['CR_Amount']) }}</b></div>
-                                                <div style="text-align: right; font-size: 0.875em;"><b>{{ '{:,.2f}'.format(data['DB_Amount']) }}</b></div>
-                                                <div style="text-align: right; font-size: 0.875em;"><b>{{ '{:,.2f}'.format(data['ENDING BALANCE']) }}</b></div>
-                                                {% if ('{:.2f}'.format(data['BEGINNING BALANCE'] + data['CR_Amount'] - data['DB_Amount']) == '{:.2f}'.format(data['ENDING BALANCE'])) %}
-                                                <div style="text-align: right; display: flex; justify-content: flex-end;">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="green" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
-                                                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
-                                                      </svg>
-                                                    </div>
-                                                {% else %}
-                                                <div style="text-align: right; display: flex; justify-content: flex-end;">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="red" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
-                                                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
-                                                      </svg>
-                                                    </div>
-                                                {% endif%}
+                                            {% else %}
+                                            <div style="text-align: right; display: flex; justify-content: flex-end;">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                    fill="red" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
+                                                    <path
+                                                        d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z" />
+                                                </svg>
                                             </div>
-                                            <div>
-                                                {% if average_daily_balances[month] is defined %}
-                                                    <div style="text-align: center; font-size: 0.875em;">Average Daily Balance: <b>RM {{ '{:,.2f}'.format(average_daily_balances[month]) }}</b></div>
-                                                    <div style="text-align: center; font-size: 0.875em;">DSP ratio: <b>{{ '{:,.2f}'.format(average_daily_balances[month]/FZ) }}</b></div>
-                                                {% endif %}
-                                            </div>
+                                            {% endif%}
+                                        </div>
+                                        <div>
+                                            {% if average_daily_balances[month] is defined %}
+                                            <div style="text-align: center; font-size: 0.875em;">Average Daily Balance:
+                                                <b>RM {{ '{:,.2f}'.format(average_daily_balances[month]) }}</b></div>
+                                            <div style="text-align: center; font-size: 0.875em;">DSP ratio: <b>{{
+                                                    '{:,.2f}'.format(average_daily_balances[month]/FZ) }}</b></div>
+                                            {% endif %}
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    {% endfor %}
                 </div>
-                <div class="row">
-                    <div style="text-align: center;">Average Ending Balance: RM{{ '{:,.2f}'.format(average_ending_balance) }}</div>
-                    <div style="text-align: center;">DSP ratio: {{ '{:,.2f}'.format(average_ending_balance/FZ) }}</div>
-                    <br>
-                    <br>
-                </div>
+                {% endfor %}
+            </div>
+            <div class="row">
+                <div style="text-align: center;">Average Ending Balance: RM{{ '{:,.2f}'.format(average_ending_balance)
+                    }}</div>
+                <div style="text-align: center;">DSP ratio: {{ '{:,.2f}'.format(average_ending_balance/FZ) }}</div>
+                <br>
+                <br>
             </div>
         </div>
+    </div>
     <div class="row">
         <div class="col-12 col-xl-8">
             <div class="row">
@@ -108,65 +128,85 @@
                                     <h2 class="fs-5 fw-bold mb-0 d-flex">Transactions</h2>
                                     <br>
                                     <!-- Button trigger modal -->
-                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#repeat">
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                                        data-bs-target="#repeat">
                                         Repetition Transactions
                                     </button>
-                                    
+
                                     <!-- Modal -->
-                                    <div class="modal fade" id="repeat" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="repeatLabel" aria-hidden="true">
+                                    <div class="modal fade" id="repeat" data-bs-backdrop="static"
+                                        data-bs-keyboard="false" tabindex="-1" aria-labelledby="repeatLabel"
+                                        aria-hidden="true">
                                         <div class="modal-dialog modal-dialog-scrollable modal-lg">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                            <h5 class="modal-title" id="repeatLabel">Repetition Transactions</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                            </div>
-                                            
-                                            <div class="modal-body" style="margin-bottom: 0.5rem;">
-                                                {% for description, transactions in repeat.items() %}
-                                                <p style="font-size: 0.9rem; margin: 0rem;"><b>Top {{ loop.index }}</b></p>
-                                                <div>
-                                                    {% for transaction in transactions %}
-                                                    <p style="font-size: 0.75rem; margin: 0rem;">Date: {{ transaction.Date }}, Description: {{ transaction.Description }}, Amount: {{ transaction.Amount }}</p>
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="repeatLabel">Repetition Transactions
+                                                    </h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                        aria-label="Close"></button>
+                                                </div>
+
+                                                <div class="modal-body" style="margin-bottom: 0.5rem;">
+                                                    {% for description, transactions in repeat.items() %}
+                                                    <p style="font-size: 0.9rem; margin: 0rem;"><b>Top {{ loop.index
+                                                            }}</b></p>
+                                                    <div>
+                                                        {% for transaction in transactions %}
+                                                        <p style="font-size: 0.75rem; margin: 0rem;">Date: {{
+                                                            transaction.Date }},
+                                                            Description: {{ transaction.Description }},
+                                                            Amount: {{ transaction.Amount }}</p>
+                                                        {% endfor %}
+                                                    </div>
+                                                    <br>
                                                     {% endfor %}
                                                 </div>
-                                                <br>
-                                                {% endfor %}
+
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary"
+                                                        data-bs-dismiss="modal">Close</button>
+                                                </div>
                                             </div>
-                                            
-                                            <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                            </div>
-                                        </div>
                                         </div>
                                     </div>
                                     <!-- Button trigger modal -->
-                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#amount">
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                                        data-bs-target="#amount">
                                         Top 5 Amount Transactions
                                     </button>
-                                    
+
                                     <!-- Modal -->
-                                    <div class="modal fade" id="amount" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="amountLabel" aria-hidden="true">
+                                    <div class="modal fade" id="amount" data-bs-backdrop="static"
+                                        data-bs-keyboard="false" tabindex="-1" aria-labelledby="amountLabel"
+                                        aria-hidden="true">
                                         <div class="modal-dialog modal-dialog-scrollable modal-lg">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                            <h5 class="modal-title" id="samountLabel">Top 5 Amount Transactions</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                            </div>
-                                            
-                                            <div class="modal-body" style="margin-bottom: 0.5rem;">
-                                                {% for index, row in top5_amounts.iterrows() %}
-                                                    <p style="font-size: 0.9rem; margin: 0rem;"><b>Top {{ loop.index }}</b></p>
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="samountLabel">Top 5 Amount Transactions
+                                                    </h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                        aria-label="Close"></button>
+                                                </div>
+
+                                                <div class="modal-body" style="margin-bottom: 0.5rem;">
+                                                    {% for index, row in top5_amounts.iterrows() %}
+                                                    <p style="font-size: 0.9rem; margin: 0rem;"><b>Top {{ loop.index
+                                                            }}</b></p>
                                                     <div>
-                                                        <p style="font-size: 0.75rem; margin: 0rem;">Date: {{ row['Date'] }}, Description: {{ row['Description'] }}, Amount: {{ row['Amount'] }}</p>
+                                                        <p style="font-size: 0.75rem; margin: 0rem;">Date: {{
+                                                            row['Date'] }},
+                                                            Description: {{ row['Description'] }},
+                                                            Amount: {{ row['Amount'] }}</p>
                                                     </div>
                                                     <br>
-                                                {% endfor %}
+                                                    {% endfor %}
+                                                </div>
+
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary"
+                                                        data-bs-dismiss="modal">Close</button>
+                                                </div>
                                             </div>
-                                            
-                                            <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                            </div>
-                                        </div>
                                         </div>
                                     </div>
                                 </div>
@@ -174,28 +214,35 @@
                         </div>
                         <div class="table-responsive">
                             <div class="input-group" style="padding: 3px;">
-                                <input id="myInput" type="search" class="form-control rounded" placeholder="Search" aria-label="Search" aria-describedby="search-addon" />
-                                <button onclick="searchTable()" type="button" class="btn btn-outline-primary" data-mdb-ripple-init>
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
-                                        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
-                                      </svg>
+                                <input id="myInput" type="search" class="form-control rounded" placeholder="Search"
+                                    aria-label="Search" aria-describedby="search-addon" />
+                                <button onclick="searchTable()" type="button" class="btn btn-outline-primary"
+                                    data-mdb-ripple-init>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                        class="bi bi-search" viewBox="0 0 16 16">
+                                        <path
+                                            d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0" />
+                                    </svg>
                                 </button>
-                              </div>
+                            </div>
                             {{ table|safe }}
                             <br>
                             <div class="pagination" id="myPagination">
                                 {% set pages_per_row = 20 %}
                                 {% set total_rows = (num_pages + pages_per_row - 1) // pages_per_row %}
-                                
+
                                 <div class="pagination-row px-3">
                                     {% for row in range(total_rows) %}
-                                        <div class="d-flex">
-                                            {% set start_page = row * pages_per_row + 1 %}
-                                            {% set end_page = (row + 1) * pages_per_row + 1 %}
-                                            {% for page in range(start_page, end_page if end_page <= num_pages + 1 else num_pages + 1) %}
-                                                <span class="page-link {% if page == current_page %}active-page{% endif %}" style='width:10%; text-align:center' onclick="showPage({{ page }})">{{ page }}</span>
+                                    <div class="d-flex">
+                                        {% set start_page = row * pages_per_row + 1 %}
+                                        {% set end_page = (row + 1) * pages_per_row + 1 %}
+                                        {% for page in range(start_page, end_page if end_page <= num_pages + 1 else
+                                            num_pages + 1) %} <span
+                                            class="page-link {% if page == current_page %}active-page{% endif %}"
+                                            style='width:10%; text-align:center' onclick="showPage({{ page }})">{{ page
+                                            }}</span>
                                             {% endfor %}
-                                        </div>
+                                    </div>
                                     {% endfor %}
                                 </div>
                             </div>
@@ -212,28 +259,48 @@
                         <div class="d-flex align-items-center justify-content-between border-bottom pb-3">
                             <div>
                                 <div class="h6 mb-0 d-flex align-items-center">
-                                    <svg class="icon icon-xs text-gray-500 me-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM4.332 8.027a6.012 6.012 0 011.912-2.706C6.512 5.73 6.974 6 7.5 6A1.5 1.5 0 019 7.5V8a2 2 0 004 0 2 2 0 011.523-1.943A5.977 5.977 0 0116 10c0 .34-.028.675-.083 1H15a2 2 0 00-2 2v2.197A5.973 5.973 0 0110 16v-2a2 2 0 00-2-2 2 2 0 01-2-2 2 2 0 00-1.668-1.973z" clip-rule="evenodd"></path></svg>
+                                    <svg class="icon icon-xs text-gray-500 me-2" fill="currentColor" viewBox="0 0 20 20"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd"
+                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM4.332 8.027a6.012 6.012 0 011.912-2.706C6.512 5.73 6.974 6 7.5 6A1.5 1.5 0 019 7.5V8a2 2 0 004 0 2 2 0 011.523-1.943A5.977 5.977 0 0116 10c0 .34-.028.675-.083 1H15a2 2 0 00-2 2v2.197A5.973 5.973 0 0110 16v-2a2 2 0 00-2-2 2 2 0 01-2-2 2 2 0 00-1.668-1.973z"
+                                            clip-rule="evenodd"></path>
+                                    </svg>
                                     Not Tally Transactions
                                 </div>
                             </div>
                             <div>
                                 <span style="background-color: #ffaaaa;">
                                     {{ warning_index|length }}
-                                    <svg class="icon icon-xs text-gray-500 ms-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                                    <svg class="icon icon-xs text-gray-500 ms-1" fill="currentColor" viewBox="0 0 20 20"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd"
+                                            d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z"
+                                            clip-rule="evenodd"></path>
+                                    </svg>
                                 </span>
                             </div>
                         </div>
                         <div class="d-flex align-items-center justify-content-between border-bottom py-3">
                             <div>
                                 <div class="h6 mb-0 d-flex align-items-center">
-                                    <svg class="icon icon-xs text-gray-500 me-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z" clip-rule="evenodd"></path></svg>
+                                    <svg class="icon icon-xs text-gray-500 me-2" fill="currentColor" viewBox="0 0 20 20"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd"
+                                            d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z"
+                                            clip-rule="evenodd"></path>
+                                    </svg>
                                     P2P Transactions
                                 </div>
                             </div>
                             <div>
                                 <span style="background-color: bisque;">
                                     {{ p2p|length }}
-                                    <svg class="icon icon-xs text-gray-500 ms-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                                    <svg class="icon icon-xs text-gray-500 ms-1" fill="currentColor" viewBox="0 0 20 20"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd"
+                                            d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z"
+                                            clip-rule="evenodd"></path>
+                                    </svg>
                                 </span>
                             </div>
                         </div>
@@ -256,17 +323,20 @@
                                         </div>
                                     </td>
                                     <td class="col-2" style="text-align: right; color:springgreen; font-size: 0.7rem;">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
-                                            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
-                                          </svg>
-                                          {{ '{:,.2f}'.format(data.credit_sum) }}
-                                        
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                            fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
+                                            <path
+                                                d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4" />
+                                        </svg>
+                                        {{ '{:,.2f}'.format(data.credit_sum) }}
+
                                     </td>
                                     <td class="col-2" style="text-align: right; color: hotpink; font-size: 0.7rem;">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dash" viewBox="0 0 16 16">
-                                            <path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8"/>
-                                          </svg>
-                                          {{ '{:,.2f}'.format(data.debit_sum) }}
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                            fill="currentColor" class="bi bi-dash" viewBox="0 0 16 16">
+                                            <path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8" />
+                                        </svg>
+                                        {{ '{:,.2f}'.format(data.debit_sum) }}
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -277,22 +347,72 @@
             </div>
         </div>
     </div>
+    <div class="row">
+        <div class="col-12 col-xl-8">
+            <div class="row">
+                <div class="col-12 mb-4">
+                    <div class="card border-0 shadow">
+                        <h2 class="fs-5 fw-bold mb-0 d-flex p-3">Invalid Date Transactions</h2>
+                        <div class="table-responsive">
+                            {{ df_null_date|safe }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-{% endblock content %}
+    {% endblock content %}
 
-<!-- Specific Page JS goes HERE  -->
-{% block javascripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    function showPage(page) {
-        var tableId = 'transactions-table';
-        var table = document.getElementById(tableId);
-        var rows = table.querySelectorAll('#' + tableId + ' tbody tr');
-        var paginationElement = document.getElementById('myPagination');
-        var startIndex = (page - 1) * 15;
-        var endIndex = startIndex + 15;
-        var warning_index = {{ warning_index|tojson|safe }};
-        var p2p_index = {{ p2p|tojson|safe }};
+    <!-- Specific Page JS goes HERE  -->
+    {% block javascripts %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        function getPageWithWarningsP2P() {
+            var tableId = 'transactions-table';
+            var table = document.getElementById(tableId);
+            var rows = table.querySelectorAll('#' + tableId + ' tbody tr');
+            var warning_index = {{ warning_index| tojson | safe
+        }};
+        var p2p_index = {{ p2p| tojson | safe }};
+        var pagesWithWarnings = [];
+        var pagesWithP2P = [];
+
+        // Calculate total number of pages
+        var totalPages = Math.ceil(rows.length / 15);
+
+        // Iterate through each page
+        for (var i = 1; i <= totalPages; i++) {
+            var startIndex = (i - 1) * 15;
+            var endIndex = startIndex + 15;
+            endIndex = Math.min(endIndex, rows.length);
+
+            // Check if any row index on this page matches warning indices
+            for (var j = startIndex; j < endIndex; j++) {
+                if (warning_index.includes(j)) {
+                    pagesWithWarnings.push(i);
+                    break; // Once a warning row is found on this page, move to the next page
+                } else if (p2p_index.includes(j)) {
+                    pagesWithP2P.push(i);
+                    break;
+                }
+            }
+        }
+
+        return { pagesWithWarnings: pagesWithWarnings, pagesWithP2P: pagesWithP2P };
+    }
+
+
+        function showPage(page) {
+            var tableId = 'transactions-table';
+            var table = document.getElementById(tableId);
+            var rows = table.querySelectorAll('#' + tableId + ' tbody tr');
+            var paginationElement = document.getElementById('myPagination');
+            var startIndex = (page - 1) * 15;
+            var endIndex = startIndex + 15;
+            var warning_index = {{ warning_index| tojson | safe
+        }};
+        var p2p_index = {{ p2p| tojson | safe }};
         paginationElement.style.display = 'flex';
         // Adjust endIndex for the last page
         endIndex = Math.min(endIndex, rows.length);
@@ -302,14 +422,18 @@
                 row.style.display = 'table-row';
                 if (warning_index.includes(index)) {
                     row.classList.add("highlighted-red");
-                    }
+                }
                 if (p2p_index.includes(index)) {
                     row.classList.add("highlighted-bisque");
-                    }
+                }
             } else {
                 row.style.display = 'none';
             }
         });
+
+        var pageData = getPageWithWarningsP2P();
+        var pagesWithWarnings = pageData.pagesWithWarnings;
+        var pagesWithP2P = pageData.pagesWithP2P;
 
         // Update active page styles
         var pageLinks = document.querySelectorAll('.page-link');
@@ -319,88 +443,94 @@
             } else {
                 link.classList.remove('active-page');
             }
+
+            if (pagesWithWarnings.includes(parseInt(link.textContent.trim()))) {
+                link.classList.add('fault-page');
+            } else if (pagesWithP2P.includes(parseInt(link.textContent.trim()))) {
+                link.classList.add('p2p-page');
+            }
         });
     }
 
-    // Show the first page by default
-    showPage(1);
+        // Show the first page by default
+        showPage(1);
 
-    // Get chart data from the Flask route
-    var chartData = {{ chart_data|tojson|safe }};
+        // Get chart data from the Flask route
+        var chartData = {{ chart_data| tojson | safe }};
 
-    // Prepare data for Chart.js
-    var labels = chartData.Labels;
-    var balances = chartData.Data;
+        // Prepare data for Chart.js
+        var labels = chartData.Labels;
+        var balances = chartData.Data;
 
-    // Create a chart using Chart.js
-    var ctx = document.getElementById('myChart').getContext('2d');
-    var myChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Daily balance',
-                data: balances,
-                borderColor: '#007bff',
-                borderWidth: 2,
-                fill: false
-            }]
-        },
-        options: {
-            title: {
-                display: true,
-                text: 'Daily balance'
-            },
-            scales: {
-                xAxes: [{
-                    type: 'time',
-                    time: {
-                        unit: 'month'
-                    }
-                }],
-                yAxes: [{
-                    scaleLabel: {
-                        display: true,
-                        labelString: 'Daily balance'
-                    }
+        // Create a chart using Chart.js
+        var ctx = document.getElementById('myChart').getContext('2d');
+        var myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Daily average balance',
+                    data: balances,
+                    borderColor: '#007bff',
+                    borderWidth: 2,
+                    fill: false
                 }]
+            },
+            options: {
+                title: {
+                    display: true,
+                    text: 'Daily average balance'
+                },
+                scales: {
+                    xAxes: [{
+                        type: 'time',
+                        time: {
+                            unit: 'month'
+                        }
+                    }],
+                    yAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Daily average balance'
+                        }
+                    }]
+                }
+            }
+        });
+
+        function searchTable() {
+            var input, filter, filteredData;
+            var paginationElement = document.getElementById('myPagination');
+            var tableId = 'transactions-table';
+            var table = document.getElementById(tableId);
+            input = document.getElementById("myInput");
+            filter = input.value.toUpperCase();
+            paginationElement.style.display = 'none';
+            var rows = table.querySelectorAll('table tbody tr');
+            if (filter == "") {
+                showPage(1)
+            } else {
+                rows.forEach(function (row) {
+                    var cells = row.getElementsByTagName("td");
+                    var found = false;
+
+                    for (var i = 0; i < cells.length; i++) {
+                        var cellText = cells[i].textContent || cells[i].innerText;
+                        if (cellText.toUpperCase().indexOf(filter) > -1) {
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (found) {
+                        row.style.display = "";
+                    } else {
+                        row.style.display = "none";
+                    }
+                });
             }
         }
-    });
 
-    function searchTable() {
-    var input, filter, filteredData;
-    var paginationElement = document.getElementById('myPagination');
-    var tableId = 'transactions-table';
-    var table = document.getElementById(tableId);
-    input = document.getElementById("myInput");
-    filter = input.value.toUpperCase();
-    paginationElement.style.display = 'none';
-    var rows = table.querySelectorAll('table tbody tr');
-    if (filter == ""){
-        showPage(1)
-    }else{
-        rows.forEach(function(row) {
-        var cells = row.getElementsByTagName("td");
-        var found = false;
 
-        for (var i = 0; i < cells.length; i++) {
-            var cellText = cells[i].textContent || cells[i].innerText;
-            if (cellText.toUpperCase().indexOf(filter) > -1) {
-                found = true;
-                break;
-            }
-        }
-
-        if (found) {
-            row.style.display = "";
-        } else {
-            row.style.display = "none";
-        }
-    });
-    }
-}
-
-    
-</script>
-{% endblock javascripts %}
+    </script>
+    {% endblock javascripts %}

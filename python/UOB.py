@@ -14,7 +14,8 @@ def UOB_main(df_list, sort, temp):
         df.columns = ['Date', 'Value Date', 'Transaction Date/Time', 'Description', 'Deposit', 'Withdrawal', 'Balance']
 
     df['Date2'] = pd.to_datetime(df['Date'], errors='coerce', format='%d/%m/%Y')
-    df.to_csv('test2.csv')
+    df_null_date = df[df['Date2'].isnull()]
+    df = df.dropna(subset=['Date2'])  # DataFrame with valid dates
     # df['Date2'].fillna(pd.to_datetime(df['Date'], errors='coerce', format='%d/%m'), inplace=True)
     # df['Date2'].fillna(pd.to_datetime(df['Date'], errors='coerce', format='%d/%m/%y'), inplace=True)
 

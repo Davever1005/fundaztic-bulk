@@ -41,8 +41,9 @@ def HLBB_main(df_list, sort):
         df_with_balance.at[index + 1, 'Balance'] = previous_balance + deposit - withdrawal
 
     df = df_with_balance[df_with_balance['Date'].str.match(r'\d{2}-\d{2}-\d{4}')]
-
     df['Date2'] = pd.to_datetime(df['Date'], errors='coerce', dayfirst=True)
+    df_null_date = df[df['Date2'].isnull()]
+    df = df.dropna(subset=['Date2'])  # DataFrame with valid dates
     df['Month'] = df['Date2'].dt.month
     df['Idx'] = df.index
     df['Idx'] = pd.to_numeric(df['Idx'], errors='coerce')
@@ -59,12 +60,13 @@ def HLBB_main(df_list, sort):
 
     df['Amount2'] = df['Deposit'] - df['Withdrawal']
     df['Amount'] = df['Amount2'].apply(lambda x: f'{abs(x):.2f}+' if x > 0 else f'{abs(x):.2f}-')
+    df = df.reset_index(drop=True)
     i = 0
     for index, row in df.iterrows():
         if row['Balance'] == "":
             df.at[index, 'Balance'] = float(str(df.at[index - 1, 'Balance']).replace(",", "")) + float(str(row['Deposit']).replace(",", "")) - float(str(row['Withdrawal']).replace(",", ""))
             prev_idx = row['Idx']
-            
+                
     df['Balance'] = df['Balance'].apply(lambda x: float(str(x).replace(",", "")))
     df = df.drop(['Deposit', 'Withdrawal'], axis=1)
     df = df.reset_index(drop=True)
@@ -73,6 +75,4 @@ def HLBB_main(df_list, sort):
 
     df['Sign'] = df['Amount2'].apply(lambda x: 1 if x > 0 else -1)
     df['Description'] = df['Description'].str.replace('\n', ' ')
-
-
-    return df, bal
+    return df, bal, df_null_date

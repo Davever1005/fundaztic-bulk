@@ -803,7 +803,7 @@ def analysis():
                         table_df = pd.DataFrame(table[2:])
                         if len(table_df.columns) == 5:
                             df_list.append(table_df)
-                df, bal = HLBB_main(df_list, sort=1)
+                df, bal, df_null_date = HLBB_main(df_list, sort=1)
             elif bank_selected == 'UOB':
                 bal = []
                 pdf = pdfplumber.open(file_path)
@@ -818,6 +818,7 @@ def analysis():
                         table_df = pd.DataFrame(table[2:])
                         df_list.append(table_df)
                 df = UOB_main(df_list, 1, temp)
+                df_null_date = pd.DataFrame(columns=['DATE', 'DESCRIPTION', 'AMOUNT', 'BALANCE', 'Date2'])
             elif bank_selected == 'ALLIANCE':
                 bal = []
                 pdf = pdfplumber.open(file_path)
@@ -829,6 +830,7 @@ def analysis():
                         table_df = pd.DataFrame(table[2:])
                         df_list.append(table_df)
                 df,bal = ALL_main(df_list, 1)
+                df_null_date = pd.DataFrame(columns=['DATE', 'DESCRIPTION', 'AMOUNT', 'BALANCE', 'Date2'])
             else:
                 with pdfplumber.open(file_path) as pdf:
                     bal = []
@@ -850,14 +852,14 @@ def analysis():
                 rows = updated_rows
                 if bank_selected == "MBB":
                     bal = [(s, rows[i+1]) for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in  ['BEGINNING BALANCE'])]
-                    df, bal = MBB_main(rows,bal, 1)
+                    df, bal, df_null_date = MBB_main(rows,bal, 1)
                 
                 elif bank_selected == "CIMB":
                     bal = [(s, rows[i+1]) for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in  ['OPENING BALANCE'])]
-                    df, bal = CIMB_main(rows, bal, sort)
+                    df, bal, df_null_date = CIMB_main(rows, bal, sort)
 
                 elif bank_selected == "PBB":
-                    df, bal = PBB_main(rows, sort)
+                    df, bal, df_null_date = PBB_main(rows, sort)
 
                 elif bank_selected == "RHB":
                     bal = [(s, rows[i+1]) for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in  ['B/FBALANCE', 'B/F BALANCE'])]
@@ -872,18 +874,19 @@ def analysis():
                         cleaned_bal.append((text + " Balance " + balance, entry[1]))
                     bal = cleaned_bal
                     df, bal = RHB_main(rows, bal, sort)
+                    df_null_date = pd.DataFrame(columns=['DATE', 'DESCRIPTION', 'AMOUNT', 'BALANCE', 'Date2'])
 
                 elif bank_selected == "OCBC":
                     bal = [(s, rows[i+1]) for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in  ['Balance B/F'])]
-                    df, bal = OCBC_main(rows, bal, sort)
+                    df, bal, df_null_date = OCBC_main(rows, bal, sort)
                     
                 elif bank_selected == "AM BANK":
                     bal = [(s, rows[i+1]) for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in  ['Baki Bawa Ke Hadapan / Balance b/f'])]
-                    df, bal = AM_main(rows, bal, sort)
+                    df, bal, df_null_date = AM_main(rows, bal, sort)
 
                 elif bank_selected == "BANK ISLAM":
                     bal = [(s, rows[i+1]) for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in  ['BALB/F'])]
-                    df, bal = ISLAM_main(rows, bal, sort)
+                    df, bal, df_null_date = ISLAM_main(rows, bal, sort)
 
             num_rows_per_page = 15
             num_pages = (len(df) + num_rows_per_page - 1) // num_rows_per_page
@@ -903,11 +906,13 @@ def analysis():
             top5_amounts = df.loc[df['Amount2'].abs().nlargest(5).index]
             ending_balances = [entry['ENDING BALANCE'] for entry in summary_data.values()]
             average_ending_balance = sum(ending_balances) / len(ending_balances)
+            df_null_date = df_null_date.drop('Date2', axis=1)
+            df_null_date_html = df_null_date.to_html(classes='table table-striped', index=False, table_id='invalid-table')
             
             return render_template('home/dashboard.html', file_path=file_path.replace("\\","").split("/")[-1], table=table_html, num_pages=num_pages, bank_selected=bank_selected, 
                                    current_page=current_page, summary_data=summary_data, chart_data=chart_data, warning_index=warning_index, 
                                    p2p = p2p_indices_list, type_data=type_data, repeat=repeat, top5_amounts= top5_amounts, 
-                                   average_ending_balance=average_ending_balance, average_daily_balances=average_daily_balances, FZ=fz)
+                                   average_ending_balance=average_ending_balance, average_daily_balances=average_daily_balances, FZ=fz, df_null_date=df_null_date_html)
 
         # Handle the case where data is not available
         return redirect(url_for('authentication_blueprint.upload_file'))
