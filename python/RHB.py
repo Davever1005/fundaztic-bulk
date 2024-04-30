@@ -43,7 +43,7 @@ def add_year(my_list):
 
 def RHB_process_rows(rows,bal, sort):
     DATE_REGEX = r'\w{3}\d{2}|\d{2}\w{3}'
-    AMOUNT_REGEX = r'\.\d{2}|\.\d{2}-|\d{1}\.\d{1}'
+    AMOUNT_REGEX = r'\.\d{2}|\.\d{2}-|\d{1}\.\d{1}|\.\d{2}+'
     KEYWORDS_TO_REMOVE = ["Member of PIDM", "B/F BALANCE", "Protected by PIDM", 'IMPORTANTNOTES', 'B/FBALANCE', 'C/FBALANCE']
     data = {}
     transaction_number = 1

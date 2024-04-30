@@ -41,6 +41,7 @@ from python.CIMB import CIMB_main
 from python.HLBB import HLBB_main
 from python.PBB import PBB_main
 from python.RHB import RHB_main
+from python.RHB_reflex import RHB_reflex_main
 from python.OCBC import OCBC_main
 from python.AM import AM_main
 from python.Islam import ISLAM_main
@@ -874,6 +875,11 @@ def analysis():
                         cleaned_bal.append((text + " Balance " + balance, entry[1]))
                     bal = cleaned_bal
                     df, bal = RHB_main(rows, bal, sort)
+                    df_null_date = pd.DataFrame(columns=['DATE', 'DESCRIPTION', 'AMOUNT', 'BALANCE', 'Date2'])
+
+                elif bank_selected == "RHB-reflex":
+                    bal = [s for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in  ['Beginning Balance'])]
+                    df, bal = RHB_reflex_main(rows, bal, sort)
                     df_null_date = pd.DataFrame(columns=['DATE', 'DESCRIPTION', 'AMOUNT', 'BALANCE', 'Date2'])
 
                 elif bank_selected == "OCBC":
