@@ -239,7 +239,7 @@
                                         {% for page in range(start_page, end_page if end_page <= num_pages + 1 else
                                             num_pages + 1) %} <span
                                             class="page-link {% if page == current_page %}active-page{% endif %}"
-                                            style='width:10%; text-align:center' onclick="showPage({{ page }})">{{ page
+                                            style='width:15%; text-align:center' onclick="showPage({{ page }})">{{ page
                                             }}</span>
                                             {% endfor %}
                                     </div>

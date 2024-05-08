@@ -42,8 +42,8 @@ def add_year(my_list):
                     my_list[i] = " ".join(elements)
 
 def RHB_process_rows(rows,bal, sort):
-    DATE_REGEX = r'\w{3}\d{2}|\d{2}\w{3}'
-    AMOUNT_REGEX = r'\.\d{2}|\.\d{2}-|\d{1}\.\d{1}|\.\d{2}+'
+    DATE_REGEX = r'\w{3}\d{2}\d{2}|\d{2}\w{3}\d{2}'
+    AMOUNT_REGEX = r'\.\d{2}|\.\d{2}-|\d{1}\.\d{1}|'
     KEYWORDS_TO_REMOVE = ["Member of PIDM", "B/F BALANCE", "Protected by PIDM", 'IMPORTANTNOTES', 'B/FBALANCE', 'C/FBALANCE']
     data = {}
     transaction_number = 1
@@ -61,47 +61,35 @@ def RHB_process_rows(rows,bal, sort):
             previous_balance = round(float(bal[0][0].split()[-1].replace(",", "")),2)
         if elements:
             if len(elements) > 2:
-                if any(month in elements[0].upper() for month in months) and len(elements[0])==3:
-                    date_idx = 2
-                elif any(month in elements[0].upper() for month in months) and len(elements[0])>3:
-                    date_idx = 1
-                elif any(month in elements[1].upper() for month in months) and len(elements[0]):
-                    date_idx = 2
-                if date_idx and re.match(DATE_REGEX, "".join(elements[0:date_idx]).replace(" ", "")[0:5]) and (re.match(AMOUNT_REGEX, elements[-1][-3:]) or re.match(AMOUNT_REGEX, elements[-1][-4:])) and re.match(AMOUNT_REGEX, elements[-2][-3:]):
+                if re.match(DATE_REGEX, elements[0][0:7]) and (re.match(AMOUNT_REGEX, elements[-1][-3:]) or re.match(AMOUNT_REGEX, elements[-1][-4:])) and re.match(AMOUNT_REGEX, elements[-2][-3:]):
                     # Start of a new transaction
                     test = 1
                     if transaction is not None:
                         data[f"{transaction_number}"] = transaction
                         transaction_number += 1
-
-                    matching_indices = [idx for idx, el in reversed(list(enumerate(elements))) if (re.match(AMOUNT_REGEX, el[-3:]) or re.match(AMOUNT_REGEX, el[-4:]))]
-                    balance_index = matching_indices[0] if matching_indices else None
-                    if balance_index:
-                        if "-" in elements[balance_index]:
-                            bal = -float(elements[balance_index].replace(",", "").replace("-", "")) - previous_balance
-                            balance = -float(elements[balance_index].replace(",", "").replace("-", ""))
-                        else:
-                            bal = float(elements[balance_index].replace(",", "")) - previous_balance
-                            balance = float(elements[balance_index].replace(",", ""))
-                        if len(matching_indices)==2:
-                            amt = float(elements[balance_index-1].replace(",", ""))
-                            description_end = balance_index-1
-                        elif len(matching_indices)==3:
-                            amt = float(elements[balance_index-2].replace(",", ""))
-                            description_end = balance_index-2
-                        else:
-                            amt = 0
-                            description_end = balance_index
-                        description = " ".join(elements[date_idx:description_end])  # Join elements as description
-                        transaction = {
-                            "Date": "".join(elements[0:date_idx]),
-                            "Description": description,
-                            "Amount": amt,
-                            "Balance": balance
-                        }
-                        previous_balance = transaction["Balance"]
+                    if "-" in elements[-1]:
+                        balance = -float(elements[-1].replace(",", "").replace("-", ""))
                     else:
-                        print('no balance found')
+                        balance = float(elements[-1].replace(",", ""))
+                    amt = float(elements[-2].replace(",", ""))
+                    description_end = -2
+                    description = " ".join(elements[1:description_end])  # Join elements as description
+                    transaction = {
+                        "Date": "".join(elements[0]),
+                        "Description": description,
+                        "Amount": amt,
+                        "Balance": balance
+                    }
+                    previous_balance = transaction["Balance"]
+
+                elif test == 1 and all(s not in "".join(elements) for s in KEYWORDS_TO_REMOVE):
+                    # This is a continuation of the description, skip if "**"
+                    if "Description" not in transaction:
+                        transaction["Description"] = " ".join(elements)
+                    else:
+                        transaction["Description"] += " " + " ".join(elements)
+                else:
+                    test = 0
 
             elif test == 1 and all(s not in "".join(elements) for s in KEYWORDS_TO_REMOVE):
                 # This is a continuation of the description, skip if "**"
@@ -171,6 +159,7 @@ def RHB_main(rows, bal, sort):
         bal = sorted(bal, key=lambda x: x[1])
     except Exception as e:
         print(e)
+
     data = RHB_process_rows(rows,bal, sort)
 
     df = pd.DataFrame.from_dict(data, orient='index')
