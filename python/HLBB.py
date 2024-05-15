@@ -25,6 +25,11 @@ def HLBB_main(df_list, sort):
     df_with_balance = df[df['Date'].str.match(r'\d{2}-\d{2}-\d{4}') | df['Description'].str.contains('Balance from')]
     df_with_balance = df_with_balance.reset_index(drop=True)
 
+    for index, row in df_with_balance.iterrows():
+        if "(" in str(row['Balance']) and ")" in str(row['Balance']):
+            df_with_balance.at[index, 'Balance'] = -float(str(row['Balance']).replace("(", "").replace(")", "").replace(",", ""))
+
+
 
     bal = [(float(row['Balance'].replace(',', "")), pd.to_datetime(df_with_balance.at[index + 1, 'Date'], errors='coerce', dayfirst=True).month, index) for index, row in df_with_balance[df_with_balance['Description'].str.contains('Balance from previous statement', na=False)].iterrows()]
     for i in range(len(bal)):
