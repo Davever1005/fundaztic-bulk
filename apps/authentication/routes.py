@@ -790,6 +790,7 @@ def analysis():
         sort = session.get('sort')
         fz = session.get('FZ')
         temp = 1
+        begin_bal = 0
         if file_path and bank_selected:
             if bank_selected == 'HLBB':
                 pdf = pdfplumber.open(file_path)
@@ -860,7 +861,7 @@ def analysis():
                     df, bal, df_null_date = CIMB_main(rows, bal, sort)
 
                 elif bank_selected == "PBB":
-                    df, bal, df_null_date = PBB_main(rows, sort)
+                    df, bal, df_null_date, begin_bal = PBB_main(rows, sort, begin_bal)
 
                 elif bank_selected == "RHB":
                     bal = [(s, rows[i+1]) for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in  ['B/FBALANCE', 'B/F BALANCE'])]
@@ -904,7 +905,7 @@ def analysis():
             p2p_df = final_df[final_df.apply(lambda row: any(keyword.lower() in row['Description'].lower() for keyword in p2p_keywords), axis=1)]
             p2p_indices_list = (p2p_df.index.astype(int)).tolist()
             warning, warning_index = check_balance_within_month(df, bal, sort, bank_selected)
-            summary_data = summary_main(df, bal, bank_selected)
+            summary_data = summary_main(df, bal, bank_selected, begin_bal)
             chart_data, average_daily_balances = plot_to_html_image(df, bal)
             type_data = type(df)
             repeat = find_repeat(final_df)

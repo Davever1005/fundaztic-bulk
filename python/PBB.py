@@ -31,7 +31,6 @@ def add_year(my_list):
     year = None
     for i in range(len(my_list)):
         elements = my_list[i].split()
-        print(f'add_year: {elements}')
         if len(elements)>0:
             try:
                 if 'Statement Date' in my_list[i] and re.match(r'\d{4}',elements[-1]):
@@ -54,7 +53,6 @@ def add_date(my_list):
     date = None
     for i in range(len(my_list)):
         elements = my_list[i].split()
-        print(f'add_date: {elements}')
         if len(elements)>3:
             try:
                 if re.match(AMOUNT_REGEX, elements[-2][-4:]):
@@ -135,9 +133,7 @@ def PBB_process_rows(rows, bal, sort):
                     description = ""
                     for desc_row in rows[rows.index(row) + 1:]:
                         desc_elements = desc_row.split()
-                        print(f'loop desc: {desc_elements}')
                         if desc_elements and ((re.match(AMOUNT_REGEX, desc_elements[-1][-4:]) and re.match(AMOUNT_REGEX, desc_elements[-2][-4:])) or (re.match(AMOUNT_REGEX, desc_elements[-2][-4:]) and re.match('OD', desc_elements[-1]))):
-                            print('here')
                             break  # Stop accumulating description if a new transaction starts
                         description += " ".join(desc_elements) + " "
                     test=0
@@ -148,7 +144,6 @@ def PBB_process_rows(rows, bal, sort):
                         "Balance": round(float(balance), 2)
                     }
                 elif test == 1 and all(s not in "".join(elements) for s in KEYWORDS_TO_REMOVE):
-                    print(elements)
                     # This is a continuation of the description, skip if "**"
                     if "Description" not in transaction:
                         transaction["Description"] = " ".join(elements)
@@ -173,7 +168,7 @@ def PBB_process_rows(rows, bal, sort):
     return data
 
 
-def PBB_main(rows, sort):
+def PBB_main(rows, sort, begin_bal):
     DATE_REGEX = r'\d{2}/\d{2}'
     KEYWORDS_TO_REMOVE = ["Penyata ini dicetak melalui komputer", "Baki Harian Dan Penutup Meliputi Semua"]
     add_year(rows)
@@ -181,7 +176,6 @@ def PBB_main(rows, sort):
     bal = [(s, rows[i+1]) for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in  ['Balance From Last Statement'])]
     indices_containing = [i for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in KEYWORDS_TO_REMOVE)]
     indices_containing.sort(reverse=True)
-    print(bal)
     new_bal = []
     for index in indices_containing:
         if 0 <= index < len(rows):
@@ -195,12 +189,17 @@ def PBB_main(rows, sort):
     try:
         date_format = '%d/%m/%Y'
         for i in range(len(bal)):
-            date_string = bal[i][0].split()[0]
+            date_string_1 = bal[i][0].split()[0]
+            date_string_2 = bal[i][1].split()[0]
             # Convert the date string to pandas datetime object
-            date_object = pd.to_datetime(date_string, format=date_format)
-
+            date_object_1 = pd.to_datetime(date_string_1, format=date_format)
+            date_object_2 = pd.to_datetime(date_string_2, format=date_format)
             # Extract the month from the pandas datetime object
-            month_only = date_object.month + 1
+            month_bal = date_object_1.month
+            month_only = date_object_2.month
+
+            if month_bal == month_only:
+                begin_bal = 1
 
             if month_only > 12:
                 month_only = month_only -12
@@ -223,7 +222,6 @@ def PBB_main(rows, sort):
     rows = [item for item in rows if 'Balance C/F' not in item]
     data = PBB_process_rows(rows, bal, sort)
     df = pd.DataFrame.from_dict(data, orient='index')
-    print(df)
     if sort == '-1':
         i = 0
         previous_balance = None
@@ -302,5 +300,5 @@ def PBB_main(rows, sort):
 
     df['Amount2'] = df.Amt * df.Sign
     
-    return df, bal, df_null_date
+    return df, bal, df_null_date, begin_bal
 

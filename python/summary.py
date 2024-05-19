@@ -1,6 +1,6 @@
 import pandas as pd
 
-def summary_main(df, bal, bank_selected):
+def summary_main(df, bal, bank_selected, begin_bal):
 
     dict_data={}
     # Convert 'Amount' column to numeric (remove commas and convert to float)
@@ -8,7 +8,7 @@ def summary_main(df, bal, bank_selected):
 
     df['Month_Year'] = df['Date2'].dt.strftime('%b %y')
     for name, group in df.groupby(df['Month_Year']):
-        if len(bal) == 0 or bank_selected=='HLBB':
+        if len(bal) == 0 or bank_selected=='HLBB' or begin_bal == 1:
             begin = group.iloc[0]['Balance'] - group.iloc[0]['Amount2']
         else:
             begin = float(next((item[0] for item in bal if item[1] == group.iloc[0]['Month']), 0))
