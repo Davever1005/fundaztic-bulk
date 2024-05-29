@@ -779,6 +779,20 @@ def upload_file():
 
     return render_template('home/index.html', bank_selected=bank_selected)
 
+def split_rows(row):
+    # Split the row by '\n' if any element contains '\n'
+    if any(isinstance(val, str) and '\n' in val for val in row):
+        split_values = [str(val).split('\n') if isinstance(val, str) else [val] for val in row]
+        # Determine the maximum length of sublists in the original data
+        max_length = max(len(sublist) for sublist in split_values)
+        # Fill shorter sublists with empty strings to match the maximum length
+        filled_data = [sublist + [''] * (max_length - len(sublist)) for sublist in split_values]
+        # Use zip to transpose the list and then convert it to a list of lists
+        restructured_data = [list(row) for row in zip(*filled_data)]
+        return restructured_data
+    else:
+        return [list(row)]
+
 @blueprint.route('/analysis', methods=['GET'])
 def analysis():
     try:
@@ -804,7 +818,10 @@ def analysis():
                     if table:
                         table_df = pd.DataFrame(table[2:])
                         if len(table_df.columns) == 5:
-                            df_list.append(table_df)
+                            for _, row in table_df.iterrows():
+                                split_row_list = split_rows(row)
+                                for split_row in split_row_list:
+                                    df_list.append(pd.DataFrame([split_row], columns=table_df.columns))
                 df, bal, df_null_date = HLBB_main(df_list, sort=1)
             elif bank_selected == 'UOB':
                 bal = []
@@ -901,8 +918,8 @@ def analysis():
             final_df = df[['Date', 'Description', 'Amount', 'Balance']]
             # Convert DataFrame to HTML
             table_html = final_df.to_html(classes='table table-striped', index=False, table_id='transactions-table')
-            p2p_keywords = ['Bay Smart', 'BM Ram Capital', 'B2B Finpal', 'Capsphere Services', 'Crowd Sense', 'P2P nusa kapital', 'fbm crowdtech', 'microleap', 'modalku ventures', 'moneysave', 'quickash']
-            p2p_df = final_df[final_df.apply(lambda row: any(keyword.lower() in row['Description'].lower() for keyword in p2p_keywords), axis=1)]
+            p2p_keywords = ['Bay Smart', 'BM Ram Capital', 'B2B Finpal', 'Capsphere Services', 'Crowd Sense', 'P2P nusa kapital', 'fbm crowdtech', 'microleap', 'modalku ventures', 'moneysave', 'quickash', 'Peoplender']
+            p2p_df = final_df[final_df.apply(lambda row: any(keyword.lower().replace(" ", "") in row['Description'].lower().replace(" ", "") for keyword in p2p_keywords), axis=1)]
             p2p_indices_list = (p2p_df.index.astype(int)).tolist()
             warning, warning_index = check_balance_within_month(df, bal, sort, bank_selected)
             summary_data = summary_main(df, bal, bank_selected, begin_bal)
@@ -919,7 +936,8 @@ def analysis():
             return render_template('home/dashboard.html', file_path=file_path.replace("\\","").split("/")[-1], table=table_html, num_pages=num_pages, bank_selected=bank_selected, 
                                    current_page=current_page, summary_data=summary_data, chart_data=chart_data, warning_index=warning_index, 
                                    p2p = p2p_indices_list, type_data=type_data, repeat=repeat, top5_amounts= top5_amounts, 
-                                   average_ending_balance=average_ending_balance, average_daily_balances=average_daily_balances, FZ=fz, df_null_date=df_null_date_html)
+                                   average_ending_balance=average_ending_balance, average_daily_balances=average_daily_balances, FZ=fz, df_null_date=df_null_date_html,
+                                    df_null_date_len=len(df_null_date))
 
         # Handle the case where data is not available
         return redirect(url_for('authentication_blueprint.upload_file'))

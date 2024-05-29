@@ -5,7 +5,7 @@ import pandas as pd
 def AM_find_next_one(my_list, index):
     DATE_REGEX = r'\d{2}\w{3}'
     AMOUNT_REGEX = r'\.\d{2}'
-    BAL_REGEX = r'\.\d{2}'
+    BAL_REGEX = r'\.\d{2}|\.\d{2}DR'
     for i in range(index + 1, len(my_list)):
         elements = my_list[i].split()
         if my_list[i] == 'TARIKH TRANSAKSI NO. CEK DEBIT KREDIT BAKI':
@@ -13,14 +13,14 @@ def AM_find_next_one(my_list, index):
                 return i + 1
             else:
                 return i + 2
-        elif re.match(DATE_REGEX, my_list[i][0:5]) and re.match(BAL_REGEX, elements[-1][-3:]) and re.match(AMOUNT_REGEX, elements[-2][-3:]):
+        elif re.match(DATE_REGEX, my_list[i][0:5]) and (re.match(BAL_REGEX, elements[-1][-3:]) or re.match(BAL_REGEX, elements[-1][-5:])) and re.match(AMOUNT_REGEX, elements[-2][-3:]):
             return i  # Return the index of the first occurrence of 1 after the specified index
     return -1
 
 def add_year(my_list):
     DATE_REGEX = r'\d{2}\w{3}'
     AMOUNT_REGEX = r'\.\d{2}'
-    BAL_REGEX = r'\.\d{2}'
+    BAL_REGEX = r'\.\d{2}|\.\d{2}DR'
     months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
     year = None
     for i in range(len(my_list)):
@@ -28,14 +28,14 @@ def add_year(my_list):
         if len(elements)>0:
             if 'STATEMENT DATE' in my_list[i] and re.match(r'\d{2}/\d{2}/\d{4}',elements[-1]):
                 year = elements[-1][-4:]
-            elif re.match(DATE_REGEX, elements[0][0:5]) and  elements[0][-3:].upper() in months and re.match(BAL_REGEX, elements[-1][-3:]) and re.match(AMOUNT_REGEX, elements[-2][-3:]):
+            elif re.match(DATE_REGEX, elements[0][0:5]) and  elements[0][-3:].upper() in months and (re.match(BAL_REGEX, elements[-1][-3:]) or re.match(BAL_REGEX, elements[-1][-5:])) and re.match(AMOUNT_REGEX, elements[-2][-3:]):
                 elements[0] = elements[0][0:5] + str(year)
                 my_list[i] = " ".join(elements)
 
 def AM_process_rows(rows, bal, sort):
     DATE_REGEX = r'\d{2}\w{3}\d{4}'
     AMOUNT_REGEX = r'\.\d{2}'
-    BAL_REGEX = r'\.\d{2}'
+    BAL_REGEX = r'\.\d{2}|\.\d{2}DR'
     KEYWORDS_TO_REMOVE = ["1. PRIVACY NOTICE / NOTIS PRIVASI", "ACCOUNT STATEMENT"]
     data = {}
     transaction_number = 1
@@ -45,32 +45,27 @@ def AM_process_rows(rows, bal, sort):
     for row in rows:
         elements = row.split()  # Split the row into elements
         if elements:
-            if re.match(DATE_REGEX, elements[0]) and re.match(BAL_REGEX, elements[-1][-3:]) and re.match(AMOUNT_REGEX, elements[-2][-3:]):
+            if re.match(DATE_REGEX, elements[0]) and (re.match(BAL_REGEX, elements[-1][-3:]) or re.match(BAL_REGEX, elements[-1][-5:])) and re.match(AMOUNT_REGEX, elements[-2][-3:]):
                 # Start of a new transaction
                 test = 1
                 if transaction is not None:
                     data[f"{transaction_number}"] = transaction
                     transaction_number += 1
 
-                matching_indices = [idx for idx, el in reversed(list(enumerate(elements))) if re.match(r'\.\d{2}', el[-3:])]
-                balance_index = matching_indices[0] if matching_indices else None
-                if balance_index:
-                    if len(matching_indices)==2:
-                        amt = float(elements[balance_index-1].replace(",", ""))
-                        description_end = balance_index-1
-                    elif len(matching_indices)==3:
-                        amt = float(elements[balance_index-2].replace(",", ""))
-                        description_end = balance_index-2
-                    else:
-                        amt = 0
-                        description_end = balance_index
-                    description = " ".join(elements[1:description_end])  # Join elements as description
-                    transaction = {
-                        "Date": elements[0],
-                        "Description": description,
-                        "Amount": amt,
-                        "Balance": float(elements[balance_index].replace(",", "")),
-                    }
+                amt = float(elements[-2].replace(",", ""))
+                description_end = -2
+
+                if 'DR' in elements[-1]:
+                    balance = -float(elements[-1].replace(",", "").replace("DR", ""))
+                else:
+                    balance = float(elements[-1].replace(",", ""))
+                description = " ".join(elements[1:description_end])  # Join elements as description
+                transaction = {
+                    "Date": elements[0],
+                    "Description": description,
+                    "Amount": amt,
+                    "Balance": balance,
+                }
 
             elif test == 1 and all(s not in "".join(elements) for s in KEYWORDS_TO_REMOVE):
                 # This is a continuation of the description, skip if "**"
@@ -116,7 +111,11 @@ def AM_main(rows, bal, sort):
             month_only = date_object.month
 
             # Create a new tuple with the month
-            bal[i] = (bal[i][0].split()[-1].replace(",", ""), month_only)
+            if "DR" in bal[i][0].split()[-1]:
+                bal_amt = -float(bal[i][0].split()[-1].replace(",", ""))
+            else:
+                bal_amt = bal[i][0].split()[-1].replace(",", "")
+            bal[i] = (bal_amt, month_only)
         bal = sorted(bal, key=lambda x: x[1])
     except Exception as e:
             pass

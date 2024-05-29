@@ -368,6 +368,13 @@
     {% block javascripts %}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        // Get the length of df_null_date passed from the backend
+        const dfNullDateLen = {{ df_null_date_len }};
+
+        // Check if the length is greater than 0 and alert if true
+        if (dfNullDateLen > 0) {
+            alert("There are rows with invalid dates!");
+        }
         function getPageWithWarningsP2P() {
             var tableId = 'transactions-table';
             var table = document.getElementById(tableId);

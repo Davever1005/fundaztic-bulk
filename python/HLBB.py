@@ -46,7 +46,7 @@ def HLBB_main(df_list, sort):
         df_with_balance.at[index + 1, 'Balance'] = previous_balance + deposit - withdrawal
 
     df = df_with_balance[df_with_balance['Date'].str.match(r'\d{2}-\d{2}-\d{4}')]
-    df['Date2'] = pd.to_datetime(df['Date'], errors='coerce', dayfirst=True)
+    df['Date2'] = pd.to_datetime(df['Date'].str[:10], errors='coerce', dayfirst=True)
     df_null_date = df[df['Date2'].isnull()]
     df = df.dropna(subset=['Date2'])  # DataFrame with valid dates
     df['Month'] = df['Date2'].dt.month
