@@ -32,18 +32,33 @@ def HLBB_main(df_list, sort):
 
 
     bal = [(float(row['Balance'].replace(',', "")), pd.to_datetime(df_with_balance.at[index + 1, 'Date'], errors='coerce', dayfirst=True).month, index) for index, row in df_with_balance[df_with_balance['Description'].str.contains('Balance from previous statement', na=False)].iterrows()]
-    for i in range(len(bal)):
-        index = bal[i][2]
-        previous_balance = df_with_balance.at[index, 'Balance'].replace(",", "")
-        deposit = df_with_balance.at[index + 1, 'Deposit'].replace(",", "")
-        withdrawal = df_with_balance.at[index + 1, 'Withdrawal'].replace(",", "")
+    print(bal)
+    # for i in range(len(bal)):
+    #     try:
+    #         index = bal[i][2]
+    #         previous_balance = str(df_with_balance.at[index, 'Balance']).replace(",", "")
+    #         deposit = str(df_with_balance.at[index + 1, 'Deposit']).replace(",", "")
+    #         withdrawal = str(df_with_balance.at[index + 1, 'Withdrawal']).replace(",", "")
+    #         print(previous_balance, deposit, withdrawal)
+    #         # Replace empty values with zeros
+    #         previous_balance = float(previous_balance) if previous_balance else 0
+    #         deposit = float(deposit) if deposit else 0
+    #         withdrawal = float(withdrawal) if withdrawal else 0
+    #     except Exception:
+    #         pass
 
-        # Replace empty values with zeros
-        previous_balance = float(previous_balance) if previous_balance else 0
-        deposit = float(deposit) if deposit else 0
-        withdrawal = float(withdrawal) if withdrawal else 0
+    #     df_with_balance.at[index + 1, 'Balance'] = previous_balance + deposit - withdrawal
 
-        df_with_balance.at[index + 1, 'Balance'] = previous_balance + deposit - withdrawal
+    df_with_balance['Deposit'] = pd.to_numeric(df_with_balance['Deposit'].str.replace(',', ''), errors='coerce').fillna(0)
+    df_with_balance['Withdrawal'] = pd.to_numeric(df_with_balance['Withdrawal'].str.replace(',', ''), errors='coerce').fillna(0)
+    df_with_balance['Amount2'] = df_with_balance['Deposit'] - df_with_balance['Withdrawal']
+    df_with_balance['Amount'] = df_with_balance['Amount2'].apply(lambda x: f'{abs(x):.2f}+' if x > 0 else f'{abs(x):.2f}-')
+    df_with_balance = df_with_balance.reset_index(drop=True)
+    i = 0
+    df_with_balance.to_csv('test.csv')
+    for index, row in df_with_balance.iterrows():
+        if row['Balance'] == "":
+            df_with_balance.at[index, 'Balance'] = float(str(df_with_balance.at[index - 1, 'Balance']).replace(",", "")) + float(str(row['Deposit']).replace(",", "")) - float(str(row['Withdrawal']).replace(",", ""))
 
     df = df_with_balance[df_with_balance['Date'].str.match(r'\d{2}-\d{2}-\d{4}')]
     df['Date2'] = pd.to_datetime(df['Date'].str[:10], errors='coerce', dayfirst=True)
@@ -52,29 +67,19 @@ def HLBB_main(df_list, sort):
     df['Month'] = df['Date2'].dt.month
     df['Idx'] = df.index
     df['Idx'] = pd.to_numeric(df['Idx'], errors='coerce')
+    
+    bal = sorted(bal, key=lambda x: x[1])
+   
+                
+    df['Balance'] = df['Balance'].apply(lambda x: float(str(x).replace(",", "")))
+    df = df.drop(['Deposit', 'Withdrawal'], axis=1)
+    df = df.reset_index(drop=True)
+
     if sort == 1:
         df = df.sort_values(by = ['Date2', 'Idx'], ascending = [True, True])
     elif sort == -1:
         df = df.sort_values(by = ['Date2', 'Idx'], ascending = [True, False])
 
-    bal = sorted(bal, key=lambda x: x[1])
-
-    # Convert 'Deposit' and 'Withdrawal' columns to numeric values and fill NaN with 0
-    df['Deposit'] = pd.to_numeric(df['Deposit'].str.replace(',', ''), errors='coerce').fillna(0)
-    df['Withdrawal'] = pd.to_numeric(df['Withdrawal'].str.replace(',', ''), errors='coerce').fillna(0)
-
-    df['Amount2'] = df['Deposit'] - df['Withdrawal']
-    df['Amount'] = df['Amount2'].apply(lambda x: f'{abs(x):.2f}+' if x > 0 else f'{abs(x):.2f}-')
-    df = df.reset_index(drop=True)
-    i = 0
-    for index, row in df.iterrows():
-        if row['Balance'] == "":
-            df.at[index, 'Balance'] = float(str(df.at[index - 1, 'Balance']).replace(",", "")) + float(str(row['Deposit']).replace(",", "")) - float(str(row['Withdrawal']).replace(",", ""))
-            prev_idx = row['Idx']
-                
-    df['Balance'] = df['Balance'].apply(lambda x: float(str(x).replace(",", "")))
-    df = df.drop(['Deposit', 'Withdrawal'], axis=1)
-    df = df.reset_index(drop=True)
 
     bal = [(x, y) for x, y, _ in bal]
 
