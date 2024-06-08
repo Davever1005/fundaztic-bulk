@@ -7,7 +7,7 @@ import pandas as pd
 
 
 def MBB_find_next_one(my_list, index):
-    DATE_REGEX = r'\d{2}/\d{2}'
+    DATE_REGEX = r'^\d{2}/\d{2}$'
     AMOUNT_REGEX = r'\.\d{2}[+-]'
     BAL_REGEX = r'\.\d{2}|\.\d{2}DR'
     for i in range(index + 1, len(my_list)):
@@ -19,7 +19,7 @@ def MBB_find_next_one(my_list, index):
     return -1
 
 def add_year(my_list):
-    DATE_REGEX = r'\d{2}/\d{2}'
+    DATE_REGEX = r'^\d{2}/\d{2}$'
     AMOUNT_REGEX = r'\.\d{2}[+-]'
     BAL_REGEX = r'\.\d{2}|\.\d{2}DR'
     year = None
@@ -34,7 +34,7 @@ def add_year(my_list):
 
 
 def MBB_process_rows(rows, bal):
-    DATE_REGEX = r'\d{2}/\d{2}'
+    DATE_REGEX = r'\d{2}/\d{2}/\d{2}'
     AMOUNT_REGEX = r'\.\d{2}[+-]'
     BAL_REGEX = r'\.\d{2}|\.\d{2}DR'
     KEYWORDS_TO_REMOVE = ["BAKI", "BAKILEGAR", "ENDING", "BEGINNING BALANCE", "ENTRY DATE VALUE DATE TRANSACTION DESCRIPTION TRANSACTION AMOUNT STATEMENT BALANCE"]
@@ -351,5 +351,6 @@ TOTAL CREDIT :
     bal = sorted(bal, key=lambda x: x[1])
     
     df['Amount2'] = df.Amt * df.Sign
+
     return df, bal, df_null_date
 
