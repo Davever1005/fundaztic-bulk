@@ -7,12 +7,12 @@ import pandas as pd
 
 
 def MBB_find_next_one(my_list, index):
-    DATE_REGEX = r'^\d{2}/\d{2}$'
+    DATE_REGEX = r'\d{2}/\d{2}'
     AMOUNT_REGEX = r'\.\d{2}[+-]'
     BAL_REGEX = r'\.\d{2}|\.\d{2}DR'
     for i in range(index + 1, len(my_list)):
         elements = my_list[i].split()
-        if my_list[i] == 'ENTRY DATE VALUE DATE TRANSACTION DESCRIPTION TRANSACTION AMOUNT STATEMENT BALANCE' or my_list[i] ==  'ENTRY DATE VALUE DATE TRANSACTION DESCRIPTION GST TYPE TRANSACTION AMOUNT STATEMENT BALANCE' or my_list[i] ==  'ENTRY DATE TRANSACTION DESCRIPTION GST TYPE TRANSACTION AMOUNT STATEMENT BALANCE':
+        if my_list[i] == 'ENTRY DATE VALUE DATE TRANSACTION DESCRIPTION TRANSACTION AMOUNT STATEMENT BALANCE' or my_list[i] ==  'ENTRY DATE VALUE DATE TRANSACTION DESCRIPTION GST TYPE TRANSACTION AMOUNT STATEMENT BALANCE' or my_list[i] ==  'ENTRY DATE TRANSACTION DESCRIPTION GST TYPE TRANSACTION AMOUNT STATEMENT BALANCE' or my_list[i] ==  'ENTRY DATE TRANSACTION DESCRIPTION TRANSACTION AMOUNT STATEMENT BALANCE':
             return i
         elif re.match(DATE_REGEX, elements[0]) and (re.match(BAL_REGEX, elements[-1][-3:]) or re.match(BAL_REGEX, elements[-1][-5:])) and re.match(AMOUNT_REGEX, elements[-2][-4:]):
             return i
@@ -37,14 +37,14 @@ def MBB_process_rows(rows, bal):
     DATE_REGEX = r'\d{2}/\d{2}/\d{2}'
     AMOUNT_REGEX = r'\.\d{2}[+-]'
     BAL_REGEX = r'\.\d{2}|\.\d{2}DR'
-    KEYWORDS_TO_REMOVE = ["BAKI", "BAKILEGAR", "ENDING", "BEGINNING BALANCE", "ENTRY DATE VALUE DATE TRANSACTION DESCRIPTION TRANSACTION AMOUNT STATEMENT BALANCE"]
+    KEYWORDS_TO_REMOVE = ["Perhation / Note", "BAKI", "BAKILEGAR", "ENDING", "BEGINNING BALANCE", "ENTRY DATE VALUE DATE TRANSACTION DESCRIPTION TRANSACTION AMOUNT STATEMENT BALANCE"]
     data = {}
     transaction_number = 1
     transaction = None
     test = 0
     previous_balance = None
 
-    for row in rows:
+    for index, row in enumerate(rows):
         elements = row.split()  # Split the row into elements
         if previous_balance == None:
             previous_balance = round(float(bal[0][0]),2)
@@ -125,7 +125,43 @@ def MBB_process_rows(rows, bal):
                                 "Amt": round(float(elements[description_end][0:-1].replace(",","")), 2)
                             }
                             previous_balance = transaction["Balance"]
+                elif re.match(DATE_REGEX, elements[0]) and (re.match(BAL_REGEX, elements[-1][-3:]) or re.match(BAL_REGEX, elements[-1][-5:])) and re.match(AMOUNT_REGEX, rows[index+1][-4:]):
+                    test = 1
+                    if transaction is not None:
+                        data[f"{transaction_number}"] = transaction
+                        transaction_number += 1
 
+
+                    description_end = -2
+                    description = " ".join(elements[1:-1])  # Join elements as description
+                    if rows[index+1][-1] == "-":
+                        sign = -1
+                    elif rows[index+1][-1] == "+":
+                        sign = 1
+                    if "DR" in elements[-1]:
+                        B = elements[-1].replace("DR","")
+                        B = float(B.replace(",",""))
+                        B = -B
+                        transaction = {
+                            "Date": elements[0],
+                            "Description": description,
+                            "Amount": rows[index+1],
+                            "Balance": round(B, 2),
+                            "Sign": sign,
+                            "Amt": round(float(rows[index+1][0:-1].replace(",","")), 2)
+                            
+                        }
+                        previous_balance = transaction["Balance"]
+                    else:
+                        transaction = {
+                            "Date": elements[0],
+                            "Description": description,
+                            "Amount": rows[index+1],
+                            "Balance": float(elements[-1].replace(",","")),
+                            "Sign": sign,
+                            "Amt": round(float(rows[index+1][0:-1].replace(",","")), 2)
+                        }
+                        previous_balance = transaction["Balance"]
                 else:
                     # This is a continuation of the description, skip if "**"
                     if "Description" not in transaction:
@@ -143,7 +179,7 @@ def MBB_process_rows(rows, bal):
     return data
 
 def MBB_main(rows, bal, sort):
-    KEYWORDS_TO_REMOVE = ["BAKI LEGAR", "BAKILEGAR", "ENDING", "SINGLE ACCOUNT AND INCREASE", "THE PERSONAL DATA PROTECTION", "TOTAL DEBIT"]
+    KEYWORDS_TO_REMOVE = ["BAKI LEGAR", "BAKILEGAR", "ENDING", "SINGLE ACCOUNT AND INCREASE", "THE PERSONAL DATA PROTECTION", "TOTAL DEBIT", "Perhation / Note"]
     DATE_REGEX = r'\d{2}/\d{2}'
     indices_containing = [i for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in KEYWORDS_TO_REMOVE )]
     indices_containing.sort(reverse=True)
@@ -330,6 +366,8 @@ TOTAL CREDIT :
     string_to_remove = 'ENTRY DATE VALUE DATE TRANSACTION DESCRIPTION TRANSACTION AMOUNT STATEMENT BALANCE'
     rows = [item for item in rows if item.strip() != string_to_remove]
     string_to_remove = 'ENTRY DATE VALUE DATE TRANSACTION DESCRIPTION GST TYPE TRANSACTION AMOUNT STATEMENT BALANCE'
+    rows = [item for item in rows if item.strip() != string_to_remove]
+    string_to_remove = 'ENTRY DATE TRANSACTION DESCRIPTION TRANSACTION AMOUNT STATEMENT BALANCE'
     rows = [item for item in rows if item.strip() != string_to_remove]
     rows = [item for item in rows if 'BEGINNING BALANCE' not in item]
 
