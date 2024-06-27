@@ -905,7 +905,8 @@ def analysis():
                     df, bal, df_null_date = OCBC_main(rows, bal, sort)
                     
                 elif bank_selected == "AM BANK":
-                    bal = [(s, rows[i+1]) for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in  ['Baki Bawa Ke Hadapan / Balance b/f'])]
+                    bal = [(s, rows[i+1]) for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in  ['Baki Bawa Ke Hadapan / Balance b/f', 'Balance Brought Fwd'])]
+                    print(bal)
                     df, bal, df_null_date = AM_main(rows, bal, sort)
 
                 elif bank_selected == "BANK ISLAM":
@@ -923,6 +924,7 @@ def analysis():
             p2p_indices_list = (p2p_df.index.astype(int)).tolist()
             warning, warning_index = check_balance_within_month(df, bal, sort, bank_selected)
             summary_data = summary_main(df, bal, bank_selected, begin_bal)
+            print(summary_data)
             chart_data, average_daily_balances = plot_to_html_image(df, bal)
             type_data = type(df)
             repeat = find_repeat(final_df)

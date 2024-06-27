@@ -48,66 +48,68 @@
                     height: 500px;"></canvas>
             </div>
             <div class="row" style="padding-left: 1.5rem; padding-right: 1.5rem;">
-                {% for month, data in summary_data.items() %}
-                <div class="col-12 col-sm-6 col-xl-4 mb-4">
-                    <div class="card border-0 shadow">
-                        <div class="card-body">
-                            <div class="row d-block d-xl-flex align-items-center">
-                                <h2 class="h5">{{ month }}</h2>
-                                <div class="col-12">
-                                    <div class="row">
-                                        <div class="col-8">
-                                            <div style="font-size: 0.875em;">Begining Balance:</div>
-                                            <div style="font-size: 0.875em;"><b>{{ data['CR_Transactions'] }}</b> Credit
-                                                Transactions:</div>
-                                            <div style="font-size: 0.875em;"><b>{{ data['DB_Transactions'] }}</b> Debit
-                                                Transactions:</div>
-                                            <div style="font-size: 0.875em;">Ending Balance:</b></div>
-                                        </div>
-                                        <div class="col-4 amount">
-                                            <div style="text-align: right; font-size: 0.875em;"><b>{{
-                                                    '{:,.2f}'.format(data['BEGINNING BALANCE']) }}</b></div>
-                                            <div style="text-align: right; font-size: 0.875em;"><b>{{
-                                                    '{:,.2f}'.format(data['CR_Amount']) }}</b></div>
-                                            <div style="text-align: right; font-size: 0.875em;"><b>{{
-                                                    '{:,.2f}'.format(data['DB_Amount']) }}</b></div>
-                                            <div style="text-align: right; font-size: 0.875em;"><b>{{
-                                                    '{:,.2f}'.format(data['ENDING BALANCE']) }}</b></div>
-                                            {% if ('{:.2f}'.format(data['BEGINNING BALANCE'] + data['CR_Amount'] -
-                                            data['DB_Amount']) == '{:.2f}'.format(data['ENDING BALANCE'])) %}
-                                            <div style="text-align: right; display: flex; justify-content: flex-end;">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                                                    fill="green" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
-                                                    <path
-                                                        d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
-                                                </svg>
+                {% set summary_data_list = summary_data.items() | list %}
+                {% for month, data in summary_data_list %}
+                    {% set index = loop.index %}
+                    <div class="col-12 col-sm-6 col-xl-4 mb-4">
+                        <div class="card border-0 shadow">
+                            <div class="card-body">
+                                <div class="row d-block d-xl-flex align-items-center">
+                                    <h2 class="h5">{{ month }}</h2>
+                                    <div class="col-12">
+                                        <div class="row">
+                                            <div class="col-8">
+                                                <div style="font-size: 0.875em;">Beginning Balance:</div>
+                                                <div style="font-size: 0.875em;"><b>{{ data['CR_Transactions'] }}</b> Credit Transactions:</div>
+                                                <div style="font-size: 0.875em;"><b>{{ data['DB_Transactions'] }}</b> Debit Transactions:</div>
+                                                <div style="font-size: 0.875em;">Ending Balance:</div>
                                             </div>
-                                            {% else %}
-                                            <div style="text-align: right; display: flex; justify-content: flex-end;">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                                                    fill="red" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
-                                                    <path
-                                                        d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z" />
-                                                </svg>
+                                            <div class="col-4 amount">
+                                                <div style="text-align: right; font-size: 0.875em;"><b>{{ '{:,.2f}'.format(data['BEGINNING BALANCE']) }}</b></div>
+                                                <div style="text-align: right; font-size: 0.875em;"><b>{{ '{:,.2f}'.format(data['CR_Amount']) }}</b></div>
+                                                <div style="text-align: right; font-size: 0.875em;"><b>{{ '{:,.2f}'.format(data['DB_Amount']) }}</b></div>
+                                                <div style="text-align: right; font-size: 0.875em;"><b>{{ '{:,.2f}'.format(data['ENDING BALANCE']) }}</b></div>
+                                                {% if '{:.2f}'.format(data['BEGINNING BALANCE'] + data['CR_Amount'] - data['DB_Amount']) == '{:.2f}'.format(data['ENDING BALANCE']) %}
+                                                <div style="text-align: right; display: flex; justify-content: flex-end;">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="green" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
+                                                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+                                                    </svg>
+                                                </div>
+                                                {% else %}
+                                                <div style="text-align: right; display: flex; justify-content: flex-end;">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="red" class="bi bi-x-circle-fill" viewBox="0 0 16 16">
+                                                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
+                                                    </svg>
+                                                </div>
+                                                {% endif %}
                                             </div>
-                                            {% endif%}
-                                        </div>
-                                        <div>
-                                            {% if average_daily_balances[month] is defined %}
-                                            <div style="text-align: center; font-size: 0.875em;">Average Daily Balance:
-                                                <b>RM {{ '{:,.2f}'.format(average_daily_balances[month]) }}</b></div>
-                                            <div style="text-align: center; font-size: 0.875em;">DSP ratio: <b>{{
-                                                    '{:,.2f}'.format(average_daily_balances[month]/FZ) }}</b></div>
-                                            {% endif %}
+                                            <div>
+                                                {% if index < summary_data_list | length %}
+                                                    {% set next_month, next_data = summary_data_list[index] %}
+                                                    {% if '{:.2f}'.format(data['ENDING BALANCE']) != '{:.2f}'.format(next_data['BEGINNING BALANCE']) %}
+                                                    <div style="font-size: 0.875em; color: red;">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 512 512"><!--!Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path fill="#FFD43B" d="M256 32c14.2 0 27.3 7.5 34.5 19.8l216 368c7.3 12.4 7.3 27.7 .2 40.1S486.3 480 472 480H40c-14.3 0-27.6-7.7-34.7-20.1s-7-27.8 .2-40.1l216-368C228.7 39.5 241.8 32 256 32zm0 128c-13.3 0-24 10.7-24 24V296c0 13.3 10.7 24 24 24s24-10.7 24-24V184c0-13.3-10.7-24-24-24zm32 224a32 32 0 1 0 -64 0 32 32 0 1 0 64 0z"/></svg>
+                                                        The ending balance does not match the beginning balance of the next month.
+                                                    </div>
+                                                    {% endif %}
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                {% if average_daily_balances[month] is defined %}
+                                                <div style="text-align: center; font-size: 0.875em;">Average Daily Balance: <b>RM {{ '{:,.2f}'.format(average_daily_balances[month]) }}</b></div>
+                                                <div style="text-align: center; font-size: 0.875em;">DSP ratio: <b>{{ '{:,.2f}'.format(average_daily_balances[month]/FZ) }}</b></div>
+                                                {% endif %}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+                                
                             </div>
                         </div>
                     </div>
-                </div>
                 {% endfor %}
             </div>
+
             <div class="row">
                 <div style="text-align: center;">Average Ending Balance: RM{{ '{:,.2f}'.format(average_ending_balance)
                     }}</div>
