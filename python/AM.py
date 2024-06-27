@@ -18,7 +18,7 @@ def AM_find_next_one(my_list, index):
     return -1
 
 def add_year(my_list):
-    DATE_REGEX = r'\d{2}\w{3}'
+    DATE_REGEX = r'\d{2}\w{3}|\d{2}-\w{3}'
     AMOUNT_REGEX = r'\.\d{2}'
     BAL_REGEX = r'\.\d{2}|\.\d{2}DR'
     months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
@@ -28,8 +28,8 @@ def add_year(my_list):
         if len(elements)>0:
             if 'STATEMENT DATE' in my_list[i] and re.match(r'\d{2}/\d{2}/\d{4}',elements[-1]):
                 year = elements[-1][-4:]
-            elif re.match(DATE_REGEX, elements[0][0:5]) and  elements[0][-3:].upper() in months and (re.match(BAL_REGEX, elements[-1][-3:]) or re.match(BAL_REGEX, elements[-1][-5:])) and re.match(AMOUNT_REGEX, elements[-2][-3:]):
-                elements[0] = elements[0][0:5] + str(year)
+            elif re.match(DATE_REGEX, elements[0]) and  elements[0][-3:].upper() in months and (re.match(BAL_REGEX, elements[-1][-3:]) or re.match(BAL_REGEX, elements[-1][-5:])) and re.match(AMOUNT_REGEX, elements[-2][-3:]):
+                elements[0] = str(elements[0]).replace("-", "") + str(year)
                 my_list[i] = " ".join(elements)
 
 def AM_process_rows(rows, bal, sort):
@@ -119,9 +119,32 @@ def AM_main(rows, bal, sort):
         bal = sorted(bal, key=lambda x: x[1])
     except Exception as e:
             pass
+    
+    try:
+        date_format = '%d-%b'
+        for i in range(len(bal)):
+            date_string = bal[i][1].split()[0]
+
+            # Convert the date string to pandas datetime object
+            date_object = pd.to_datetime(date_string, format=date_format)
+
+            # Extract the month from the pandas datetime object
+            month_only = date_object.month
+
+            # Create a new tuple with the month
+            if "DR" in bal[i][0].split()[-1]:
+                bal_amt = -float(bal[i][0].split()[-1].replace(",", ""))
+            else:
+                bal_amt = bal[i][0].split()[-1].replace(",", "")
+            bal[i] = (bal_amt, month_only)
+        bal = sorted(bal, key=lambda x: x[1])
+    except Exception as e:
+            pass
+    
     data = AM_process_rows(rows, bal, sort)
 
     df = pd.DataFrame.from_dict(data, orient='index')
+
 
     if sort == '-1':
         i = 0
@@ -195,7 +218,7 @@ def AM_main(rows, bal, sort):
                     df.loc[index, "Amt"] = round(float(A), 2)
                 previous_balance = row['Balance']
         except Exception as e:
-            pass
+            print(e)
     
     df['Amount2'] = df.Amt * df.Sign
 

@@ -30,9 +30,7 @@ def HLBB_main(df_list, sort):
             df_with_balance.at[index, 'Balance'] = -float(str(row['Balance']).replace("(", "").replace(")", "").replace(",", ""))
 
 
-
-    bal = [(float(row['Balance'].replace(',', "")), pd.to_datetime(df_with_balance.at[index + 1, 'Date'], errors='coerce', dayfirst=True).month, index) for index, row in df_with_balance[df_with_balance['Description'].str.contains('Balance from previous statement', na=False)].iterrows()]
-    print(bal)
+    bal = [(float(str(row['Balance']).replace(',', "")), pd.to_datetime(df_with_balance.at[index + 1, 'Date'], errors='coerce', dayfirst=True).month, index) for index, row in df_with_balance[df_with_balance['Description'].str.contains('Balance from previous statement', na=False)].iterrows()]
     # for i in range(len(bal)):
     #     try:
     #         index = bal[i][2]
