@@ -1,0 +1,202 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}{% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+<div class="py-4">
+    <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
+        <ol class="breadcrumb breadcrumb-dark breadcrumb-transparent">
+            <li class="breadcrumb-item">
+                <a href="#">
+                    <svg class="icon icon-xxs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                </a>
+            </li>
+            <li class="breadcrumb-item"><a href="#">All</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Manual</li>
+        </ol>
+    </nav>
+    <div class="d-flex justify-content-between w-100 flex-wrap">
+        <div class="mb-3 mb-lg-0">
+            <h1 class="h4">CTOS PREDICTION</h1>
+        </div>
+    </div>
+</div>
+
+<form action="{{url_for('authentication_blueprint.ctos_manual')}}" method="POST">
+    <fieldset>
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="card border-0 shadow components-section">
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <!-- Column 1 -->
+                            <div class="col-lg-4 col-sm-6">
+                                <div class="mb-4">
+                                    <label for="NO_OF_COMPANY">NO_OF_COMPANY</label>
+                                    <input type="number" class="form-control" id="NO_OF_COMPANY" name="NO_OF_COMPANY" value="{{ form_values[0] }}" step="any" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="STATUS_ACTIVE">STATUS_ACTIVE</label>
+                                    <input type="number" class="form-control" id="STATUS_ACTIVE" name="STATUS_ACTIVE" value="{{ form_values[1] }}" step="any" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="STATUS_EXISTING">STATUS_EXISTING</label>
+                                    <input type="number" class="form-control" id="STATUS_EXISTING" name="STATUS_EXISTING" value="{{ form_values[2] }}" step="any" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="STATUS_EXPIRED">STATUS_EXPIRED</label>
+                                    <input type="number" class="form-control" id="STATUS_EXPIRED" name="STATUS_EXPIRED" value="{{ form_values[3] }}" step="any" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="STATUS_DISSOLVED">STATUS_DISSOLVED</label>
+                                    <input type="number" class="form-control" id="STATUS_DISSOLVED" name="STATUS_DISSOLVED" value="{{ form_values[4] }}" step="any" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="STATUS_NONE">STATUS_NONE</label>
+                                    <input type="number" class="form-control" id="STATUS_NONE" name="STATUS_NONE" value="{{ form_values[5] }}" step="any" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="STATUS_STRIKING OFF">STATUS_STRIKING OFF</label>
+                                    <input type="number" class="form-control" id="STATUS_STRIKING OFF" name="STATUS_STRIKING OFF" value="{{ form_values[6] }}" step="any" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="STATUS_WINDING UP">STATUS_WINDING UP</label>
+                                    <input type="number" class="form-control" id="STATUS_WINDING UP" name="STATUS_WINDING UP" value="{{ form_values[7] }}" step="any" required>
+                                </div>
+								<div class="mb-4">
+                                    <label for="STATUS_TERMINATED">STATUS_TERMINATED</label>
+                                    <input type="number" class="form-control" id="STATUS_TERMINATED" name="STATUS_TERMINATED" value="{{ form_values[8] }}" step="any" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="POSITION_SOLE PROPRIETOR">POSITION_SOLE PROPRIETOR</label>
+                                    <input type="number" class="form-control" id="POSITION_SOLE PROPRIETOR" name="POSITION_SOLE PROPRIETOR" value="{{ form_values[9] }}" step="any" required>
+                                </div>
+                            </div>
+                            <!-- Column 2 -->
+                            <div class="col-lg-4 col-sm-6">
+                                <div class="mb-4">
+                                    <label for="POSITION_PARTNER">POSITION_PARTNER</label>
+                                    <input type="number" class="form-control" id="POSITION_PARTNER" name="POSITION_PARTNER" value="{{ form_values[10] }}" step="any" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="POSITION_DIRECTOR">POSITION_DIRECTOR</label>
+                                    <input type="number" class="form-control" id="POSITION_DIRECTOR" name="POSITION_DIRECTOR" value="{{ form_values[11] }}" step="any" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="POSITION_DIRECTOR  /  SHARE HOLDER">POSITION_DIRECTOR  /  SHARE HOLDER</label>
+                                    <input type="number" class="form-control" id="POSITION_DIRECTOR  /  SHARE HOLDER" name="POSITION_DIRECTOR  /  SHARE HOLDER" value="{{ form_values[12] }}" step="any" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="POSITION_SHARE HOLDER">POSITION_SHARE HOLDER</label>
+                                    <input type="number" class="form-control" id="POSITION_SHARE HOLDER" name="POSITION_SHARE HOLDER" value="{{ form_values[13] }}" step="any" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="APPLICATION_PENDING">APPLICATION_PENDING</label>
+                                    <input type="number" class="form-control" id="APPLICATION_PENDING" name="APPLICATION_PENDING" value="{{ form_values[14] }}" step="any" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="BORROWER_LIMIT">BORROWER_LIMIT</label>
+                                    <input type="number" class="form-control" id="BORROWER_LIMIT" name="BORROWER_LIMIT" value="{{ form_values[15] }}" step="any" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="BORROWER_OUTSTANDING">BORROWER_OUTSTANDING</label>
+                                    <input type="number" class="form-control" id="BORROWER_OUTSTANDING" name="BORROWER_OUTSTANDING" value="{{ form_values[16] }}" step="any" required>
+                                </div>
+								<div class="mb-4">
+                                    <label for="MIN_DATE_YEAR">MIN_DATE_YEAR</label>
+                                    <input type="number" class="form-control" id="MIN_DATE_YEAR" name="MIN_DATE_YEAR" value="{{ form_values[17] }}" step="any" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="FACILITIES_INSTALLMENT">FACILITIES_INSTALLMENT</label>
+                                    <input type="number" class="form-control" id="FACILITIES_INSTALLMENT" name="FACILITIES_INSTALLMENT" value="{{ form_values[18] }}" step="any" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="NO_OF_SECURE">NO_OF_SECURE</label>
+                                    <input type="number" class="form-control" id="NO_OF_SECURE" name="NO_OF_SECURE" value="{{ form_values[19] }}" step="any" required>
+                                </div>
+                            </div>
+                            <!-- Column 3 -->
+                            <div class="col-lg-4 col-sm-6">
+                                <div class="mb-4">
+                                    <label for="TOTAL_SECURE">TOTAL_SECURE</label>
+                                    <input type="number" class="form-control" id="TOTAL_SECURE" name="TOTAL_SECURE" value="{{ form_values[20] }}" step="any" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="%_LIMIT_SECURE">%_LIMIT_SECURE</label>
+                                    <input type="number" class="form-control" id="%_LIMIT_SECURE" name="%_LIMIT_SECURE" value="{{ form_values[21] }}" step="any" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="NO_OF_UNSECURE">NO_OF_UNSECURE</label>
+                                    <input type="number" class="form-control" id="NO_OF_UNSECURE" name="NO_OF_UNSECURE" value="{{ form_values[22] }}" step="any" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="TOTAL_UNSECURE">TOTAL_UNSECURE</label>
+                                    <input type="number" class="form-control" id="TOTAL_UNSECURE" name="TOTAL_UNSECURE" value="{{ form_values[23] }}" step="any" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="%_LIMIT_UNSECURE">%_LIMIT_UNSECURE</label>
+                                    <input type="number" class="form-control" id="%_LIMIT_UNSECURE" name="%_LIMIT_UNSECURE" value="{{ form_values[24] }}" step="any" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="TRADE_REF">TRADE_REF</label>
+                                    <select class="form-control" id="TRADE_REF" name="TRADE_REF" required>
+                                        <option disabled selected value> -- Select an Option -- </option>
+                                        <option value="0" {% if form_values and form_values[25] == '0' %}selected{% endif %}>No</option>
+                                        <option value="1" {% if form_values and form_values[25] == '1' %}selected{% endif %}>Yes</option>
+                                    </select>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="ETR_PLUS">ETR_PLUS</label>
+                                    <select class="form-control" id="ETR_PLUS" name="ETR_PLUS" required>
+                                        <option disabled selected value> -- Select an Option -- </option>
+                                        <option value="0" {% if form_values and form_values[26] == '0' %}selected{% endif %}>No</option>
+                                        <option value="1" {% if form_values and form_values[26] == '1' %}selected{% endif %}>Yes</option>
+                                    </select>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="FICO_SCORE">FICO_SCORE</label>
+                                    <input type="number" class="form-control" id="FICO_SCORE" name="FICO_SCORE" value="{{ form_values[27] }}" step="any" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="NO_OF_FICO_FACTOR">NO_OF_FICO_FACTOR</label>
+                                    <input type="number" class="form-control" id="NO_OF_FICO_FACTOR" name="NO_OF_FICO_FACTOR" value="{{ form_values[28] }}" step="any" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-4 col-sm-6">
+                                <div class="mb-4">
+                                    <input class="btn btn-primary" type="submit" value="Result">
+                                </div>
+                                <!-- Prediction Result -->
+                                <div class="card col-sm-10">
+                                    <div class="card-body p-3">
+                                        <div class="row">
+                                            <div class="col-sm-8">
+                                                <div class="numbers">
+                                                    <p class="text-sm mb-0 text-capitalize font-weight-bold">Prediction Score</p>
+                                                    <h5 class="font-weight-bolder mb-0">
+                                                        <span class="text-success text-sm font-weight-bolder"><strong style="color:red">{{ result }}</strong></span>
+                                                    </h5>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+</form>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}

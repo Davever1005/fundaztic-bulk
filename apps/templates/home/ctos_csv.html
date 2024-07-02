@@ -1,0 +1,305 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}{% endblock %} 
+
+
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+<!-- Latest compiled and minified CSS -->
+<style>
+    .attribute-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        font-size: 12px;
+    }
+
+    .attribute-table th, .attribute-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+        font-size: 12px;
+    }
+
+    .attribute-table th {
+        background-color: #f2f2f2;
+    }
+
+    .attribute-table ul {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .attribute-table li {
+        margin-bottom: 5px;
+        font-size: 12px;
+    }
+
+    .example td,
+    .example th {
+        font-size: 10px;
+        color: gray;
+    }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+
+
+  <div class="py-4">
+      <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
+          <ol class="breadcrumb breadcrumb-dark breadcrumb-transparent">
+              <li class="breadcrumb-item">
+                  <a href="#">
+                      <svg class="icon icon-xxs" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                  </a>
+              </li>
+              <li class="breadcrumb-item"><a href="#">All</a></li>
+              <li class="breadcrumb-item active" aria-current="page">CSV</li>
+          </ol>
+      </nav>
+      <div class="d-flex justify-content-between w-100 flex-wrap">
+          <div class="mb-3 mb-lg-0">
+              <h1 class="h4">CTOS - CSV</h1>
+          </div>
+      </div>
+  </div>
+
+  <div class="card border-0 shadow mb-4">
+      <div class="card-body">
+        <div class="download-template">
+            <button class="result-button">
+                <a href="{{ url_for('authentication_blueprint.download_ctostemplate') }}" download>Download CSV Template</a>
+            </button>
+        </div>
+        <br>
+        <form id="csvUploadForm" enctype="multipart/form-data">
+            {{ form.csrf_token }}
+            <label for="csv_file">Upload CSV File:</label>
+            {{ form.csv_file() }}
+            <button type="button" class="result-button" onclick="uploadCSV()">Upload</button>
+        </form>
+      </div>
+  </div>
+
+  <!-- Button trigger modal -->
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+        Categorical Data
+    </button>
+  
+  <!-- Modal -->
+  <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Categorical Data</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <table class="attribute-table">
+                <tr>
+                    <th>Attribute</th>
+                    <th>Values</th>
+                </tr>
+                <tr>
+                    <td><b>TRADE_REF</b></td>
+                    <td>
+                        <ul>
+                            <li>Yes: 1</li>
+                            <li>No: 0</li>
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <td><b>ETR_PLUS</b></td>
+                    <td>
+                        <ul>
+                            <li>Yes: 1</li>
+                            <li>No: 0</li>
+                        </ul>
+                    </td>
+                </tr>
+            </table>
+        </div>        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <br>
+  <br>
+
+  <div class="card border-0 shadow">
+    <div class="card-body">
+        Example
+        <div class="table-responsive example" id="Example">
+            <table border="1" class="table table-success table-striped">
+                <thead>
+                    <tr style="text-align: right;">
+                        <th>NO_OF_COMPANY</th>
+                        <th>STATUS_ACTIVE</th>
+                        <th>STATUS_EXISTING</th>
+                        <th>STATUS_EXPIRED</th>
+                        <th>STATUS_DISSOLVED</th>
+                        <th>STATUS_NONE</th>
+                        <th>STATUS_STRIKING OFF</th>
+                        <th>STATUS_WINDING UP</th>
+                        <th>STATUS_TERMINATED</th>
+                        <th>POSITION_SOLE PROPRIETOR</th>
+                        <th>POSITION_PARTNER</th>
+                        <th>POSITION_DIRECTOR</th>
+                        <th>POSITION_DIRECTOR / SHARE HOLDER</th>
+                        <th>POSITION_SHARE HOLDER</th>
+                        <th>APPLICATION_APPROVED</th>
+                        <th>APPLICATION_PENDING</th>
+                        <th>BORROWER_LIMIT</th>
+                        <th>BORROWER_OUTSTANDING</th>
+                        <th>MIN_DATE_YEAR</th>
+                        <th>FACILITIES_INSTALLMENT</th>
+                        <th>NO_OF_SECURE</th>
+                        <th>TOTAL_SECURE</th>
+                        <th>%_LIMIT_SECURE</th>
+                        <th>NO_OF_UNSECURE</th>
+                        <th>TOTAL_UNSECURE</th>
+                        <th>%_LIMIT_UNSECURE</th>
+                        <th>TRADE_REF [YES(1)/NO(0)]</th>
+                        <th>ETR_PLUS [YES(1)/NO(0)]</th>
+                        <th>ENQUIRY_FI</th>
+                        <th>ENQUIRY_NONFI</th>
+                        <th>ENQUIRY_LAWYER</th>
+                        <th>FICO_SCORE</th>
+                        <th>NO_OF_FICO_FACTOR</th>
+                        <th>RESULT</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>0</td>
+                        <td>0</td>
+                        <td>0</td>
+                        <td>0</td>
+                        <td>1</td>
+                        <td>0</td>
+                        <td>0</td>
+                        <td>0</td>
+                        <td>1</td>
+                        <td>0</td>
+                        <td>0</td>
+                        <td>0</td>
+                        <td>0</td>
+                        <td>0</td>
+                        <td>0</td>
+                        <td>105800</td>
+                        <td>79369</td>
+                        <td>2008</td>
+                        <td>0</td>
+                        <td>1</td>
+                        <td>77459</td>
+                        <td>74</td>
+                        <td>1</td>
+                        <td>1910</td>
+                        <td>83</td>
+                        <td>0</td>
+                        <td>0</td>
+                        <td>1</td>
+                        <td>0</td>
+                        <td>0</td>
+                        <td>317</td>
+                        <td>4</td>
+                        <td>0.7370</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+  </div>
+
+  <br>
+
+  <div class="card border-0 shadow">
+    <div class="loading-overlay" id="loadingOverlay" style="display:none;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only"></span>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive" id="result">
+        </div>
+    </div>
+  </div>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.3/socket.io.js"></script>
+
+
+<script>
+    function clearTableAndSession() {
+        // Clear the table content
+        $('#result').html('');
+
+        // Clear the session['continue'] using an AJAX request to a Flask route
+        $.ajax({
+            url: '/clear_session',
+            type: 'GET',
+            success: function () {
+                console.log('Session cleared.');
+            },
+            error: function (error) {
+                console.log('Error clearing session:', error);
+            }
+        });
+    }
+
+    function uploadCSV() {
+        // Call the function to clear the table and session
+        clearTableAndSession();
+
+        var formData = new FormData($('#csvUploadForm')[0]);
+
+        $('#loadingOverlay').show();
+
+        $.ajax({
+            url: '/ctos_process',
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function (data) {
+                $('#loadingOverlay').hide();
+                $('#result').html(data.table);
+                $('#result').append('<br><button class="result-button"><a href="{{ url_for("authentication_blueprint.download_processed_csv") }}" download>Download Result</a></button>');
+            },
+            error: function (error) {
+                $('#loadingOverlay').hide();
+                console.log("Error:", error);
+            },
+            complete: function () {
+                console.log('Processing complete.');
+            }
+        });
+
+        var coll = document.getElementsByClassName("collapsible");
+        var i;
+
+        for (i = 0; i < coll.length; i++) {
+        coll[i].addEventListener("click", function() {
+            this.classList.toggle("active");
+            var content = this.nextElementSibling;
+            if (content.style.display === "block") {
+            content.style.display = "none";
+            } else {
+            content.style.display = "block";
+            }
+        });
+        }
+    }
+</script>
+{% endblock javascripts %}
