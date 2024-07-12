@@ -23,6 +23,7 @@ def check_balance_within_month(df, bal, sort, bank_selected):
                 prev_balance = current_balance
     elif bank_selected == 'UOB':
          go = 0
+         prev_month = None
          for index, row in df.iterrows():
             if len(bal) == 0 and go==0:
                 warning.append("No beginning balance in bank statement.")
@@ -41,6 +42,7 @@ def check_balance_within_month(df, bal, sort, bank_selected):
                 # Update previous balance for the next iteration
                 prev_balance = current_balance
     elif bank_selected == 'PBB':
+        prev_month = None
         df['Idx'] = df.index
         df['Idx'] = pd.to_numeric(df['Idx'], errors='coerce')
         if sort == 1:
@@ -54,7 +56,7 @@ def check_balance_within_month(df, bal, sort, bank_selected):
             current_month = row['Month']
             if prev_month is None:
                 find_balance = next((item[0] for item in bal if item[1] == current_month), None)
-                if find_balance:
+                if find_balance is not None:
                     prev_balance = find_balance
             amount2 = round(float(row['Amount2']),2)
             current_balance = round(float(row['Balance']),2)

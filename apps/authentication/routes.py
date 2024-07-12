@@ -1003,7 +1003,7 @@ def analysis():
                     for page in pdf.pages:
                         page_num += 1
                         text = f'{text} \n{page.extract_text()}'
-
+                print(text)
                 rows = text.split('\n')
 
                 updated_rows = []

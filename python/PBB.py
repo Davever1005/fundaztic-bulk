@@ -29,16 +29,18 @@ def add_year(my_list):
     DATE_REGEX = r'\d{2}/\d{2}'
     AMOUNT_REGEX = r'\d\.\d{2}'
     year = None
+    stat_date = None
     for i in range(len(my_list)):
         elements = my_list[i].split()
         if len(elements)>0:
             try:
                 if 'Statement Date' in my_list[i] and re.match(r'\d{4}',elements[-1]):
+                    stat_date = elements[-3:]
                     minus = False
                     if 'Jan' in my_list[i]:
                         minus = True
                     year = elements[-1]
-                elif (re.match(DATE_REGEX, elements[0]) and re.match(AMOUNT_REGEX, elements[-2][-4:])) or 'balance from last statement' in my_list[i].lower():
+                elif (re.match(DATE_REGEX, elements[0]) and re.match(AMOUNT_REGEX, elements[-2][-4:])):
                     if minus and elements[0][-2:]=="12":
                         elements[0] = elements[0] + '/' + str(int(year)-1)
                     else:
@@ -189,17 +191,12 @@ def PBB_main(rows, sort, begin_bal):
     try:
         date_format = '%d/%m/%Y'
         for i in range(len(bal)):
-            date_string_1 = bal[i][0].split()[0]
             date_string_2 = bal[i][1].split()[0]
             # Convert the date string to pandas datetime object
-            date_object_1 = pd.to_datetime(date_string_1, format=date_format)
             date_object_2 = pd.to_datetime(date_string_2, format=date_format)
             # Extract the month from the pandas datetime object
-            month_bal = date_object_1.month
             month_only = date_object_2.month
 
-            if month_bal == month_only:
-                begin_bal = 1
 
             if month_only > 12:
                 month_only = month_only -12
@@ -211,8 +208,8 @@ def PBB_main(rows, sort, begin_bal):
                     bal[i] = (" ".join(bal[i][0].split()[0:-1]) + ' -' + bal[i][0].split()[-1].replace("OD", ""),month_only)
             new_bal.append((float(bal[i][0].split()[-1].replace(',', "")), month_only))
         bal = sorted(bal, key=lambda x: x[1])
-    except:
-        pass
+    except Exception as e:
+        print(str(e))
 
     bal = new_bal
     
@@ -245,7 +242,7 @@ def PBB_main(rows, sort, begin_bal):
                     # Update current month and reset previous balance
                     current_month = date_str.month
                     find_balance = next((item[0] for item in bal if item[1] == current_month), None)
-                    if find_balance:
+                    if find_balance is not None:
                         previous_balance = find_balance
                 diff = float(row['Balance']) - float(previous_balance)
                 A = str(row['Amount'])
@@ -259,7 +256,7 @@ def PBB_main(rows, sort, begin_bal):
                     df.loc[index, "Amt"] = round(float(A), 2)
                 previous_balance = row['Balance']
         except Exception as e:
-            pass
+            print(str(e))
 
     elif sort == '1':
         i = 0
@@ -282,7 +279,7 @@ def PBB_main(rows, sort, begin_bal):
                     # Update current month and reset previous balance
                     current_month = date_str
                     find_balance = next((item[0] for item in bal if item[1] == current_month), None)
-                    if find_balance:
+                    if find_balance is not None:
                         previous_balance = find_balance
                 diff = float(row['Balance']) - float(previous_balance)
                 A = str(row['Amount'])
