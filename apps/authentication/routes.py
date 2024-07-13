@@ -78,137 +78,114 @@ def ctos_manual():
     scaler = load(open('files/Scaler3.joblib', 'rb'))
     model = load('files/RandomForestRegressor.joblib')
 
-    FEATURE_KEYS =  [
-        'NO_OF_COMPANY', 'STATUS_ACTIVE', 'STATUS_EXISTING', 'STATUS_EXPIRED', 'STATUS_DISSOLVED', 
-        'STATUS_NONE', 'STATUS_STRIKING OFF', 'STATUS_WINDING UP', 'STATUS_TERMINATED', 
-        'POSITION_SOLE PROPRIETOR', 'POSITION_PARTNER', 
-        'POSITION_DIRECTOR', 'POSITION_DIRECTOR  /  SHARE HOLDER', 
-        'POSITION_SHARE HOLDER', 'APPLICATION_APPROVED', 'APPLICATION_PENDING', 
-        'BORROWER_LIMIT', 'BORROWER_OUTSTANDING', 'MIN_DATE_YEAR', 'FACILITIES_INSTALLMENT', 
-        'NO_OF_SECURE', 'TOTAL_SECURE', '%_LIMIT_SECURE', 'NO_OF_UNSECURE', 'TOTAL_UNSECURE', 
-        '%_LIMIT_UNSECURE', 'TRADE_REF [Yes(1), No(0)]', 'ETR_PLUS [Yes(1), No(0)]', 'ENQUIRY_FI', 'ENQUIRY_NONFI', 'ENQUIRY_LAWYER', 
-        'FICO_SCORE', 'NO_OF_FICO_FACTOR'
-    ]
+    # Get the correct feature names and order from the model
+    FEATURE_KEYS = model.feature_names_in_.tolist()
 
     FEATURE_DEFAULTS = {key: 0.0 for key in FEATURE_KEYS}
+    FEATURE_DEFAULTS.update({'TRADE_REF [Yes(1), No(0)]': 0, 'ETR_PLUS [Yes(1), No(0)]': 0})  # Set appropriate defaults for categorical variables
+
     if request.method == 'POST':
-        # Get form values
-        form_values = [value for value in request.form.values()]
-        # Prepare features
-        features = FEATURE_DEFAULTS.copy()
-        features.update(zip(FEATURE_KEYS, map(float, [str(item).replace(",", "") for item in form_values])))
+        try:
+            # Create a dictionary to store form values
+            form_data = {}
+            for key in FEATURE_KEYS:
+                # Handle the special cases for TRADE_REF and ETR_PLUS
+                if key in ['TRADE_REF [Yes(1), No(0)]', 'ETR_PLUS [Yes(1), No(0)]']:
+                    form_key = key.split()[0]  # Use 'TRADE_REF' or 'ETR_PLUS' as the form key
+                    value = request.form.get(form_key, FEATURE_DEFAULTS[key])
+                    form_data[key] = int(value)
+                else:
+                    value = request.form.get(key, FEATURE_DEFAULTS[key])
+                    form_data[key] = float(str(value).replace(",", ""))
 
-        # Extract numerical values
-        numerical_values = list(features.values())
-        scaled_values_2d = scaler.transform(np.array(numerical_values).reshape(1, -1))
-        prediction = round(model.predict(scaled_values_2d)[0],4)
+            # Create a DataFrame with the correct feature order
+            df = pd.DataFrame([form_data])
 
+            # Scale the features
+            scaled_df = pd.DataFrame(scaler.transform(df), columns=FEATURE_KEYS)
 
-        # Pass the result and form values to the template
-        return render_template('home/ctos_manual.html', result=prediction, form_values=form_values)
+            print(scaled_df)
+
+            scaled_df.to_csv("test.csv")
+
+            # Make prediction
+            prediction = round(model.predict(scaled_df)[0], 4)
+
+            # Pass the result and form values to the template
+            return render_template('home/ctos_manual.html', result=prediction, form_values=list(form_data.values()))
+
+        except Exception as e:
+            # Log the error and return an error message
+            print(f"An error occurred: {str(e)}")
+            return render_template('home/ctos_manual.html', error="An error occurred while processing your request. Please try again.")
 
     # If it's a GET request, just render the template with default values
     return render_template('home/ctos_manual.html', result=None, form_values=None)
 
-@blueprint.route('/ctos_csv_upload', methods=['POST', 'GET'])
+@blueprint.route('/ctos_csv_upload', methods=['GET'])
 def ctos_csv_upload():
-    form = MyForm()  # Instantiate the form
+    form = MyForm()
+    return render_template('home/ctos_csv.html', form=form)
 
-    if request.method == 'POST' and form.validate_on_submit():
-        csv_file = form.csv_file.data  # Access the uploaded file from the form
-
-        global status_data
-        status_data = (0,0)
-
-        # Process the CSV file
-        df = pre_process_csv(csv_file)
-
-        table_html = df.to_html(classes='table table-striped', index=False)
-
-        return render_template('home/ctos_csv.html', table=table_html, form=form)
-
-    # If it's a GET request or form is not valid, render the template with the form
-    return render_template('home/ctos_csv.html', table=None, form=form)
-
-@blueprint.route('/ctos_process', methods=['POST', 'GET'])
+@blueprint.route('/ctos_process', methods=['POST'])
 def ctos_process():
     if 'csv_file' not in request.files:
-        return jsonify({'error': 'No file uploaded'})
+        return jsonify({'error': 'No file uploaded'}), 400
 
     csv_file = request.files['csv_file']
 
     if csv_file.filename == '':
-        return jsonify({'error': 'No file selected'})
+        return jsonify({'error': 'No file selected'}), 400
 
-    # Process the CSV file
-    df = ctos_process_csv(csv_file)
-
-    table_html = df.to_html(classes='table table-striped', index=False)
-
-    return jsonify({'table': table_html})
+    try:
+        df = ctos_process_csv(csv_file)
+        table_html = df.to_html(classes='table table-striped', index=False)
+        return jsonify({'table': table_html})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 def ctos_process_csv(csv_file):
-    global status_data
-    FEATURE_KEYS = [
-        'NO_OF_COMPANY', 'STATUS_ACTIVE', 'STATUS_EXISTING', 'STATUS_EXPIRED', 'STATUS_DISSOLVED', 
-        'STATUS_NONE', 'STATUS_STRIKING OFF', 'STATUS_WINDING UP', 'STATUS_TERMINATED', 
-        'POSITION_SOLE PROPRIETOR', 'POSITION_PARTNER', 
-        'POSITION_DIRECTOR', 'POSITION_DIRECTOR  /  SHARE HOLDER', 
-        'POSITION_SHARE HOLDER', 'APPLICATION_APPROVED', 'APPLICATION_PENDING', 
-        'BORROWER_LIMIT', 'BORROWER_OUTSTANDING', 'MIN_DATE_YEAR', 'FACILITIES_INSTALLMENT', 
-        'NO_OF_SECURE', 'TOTAL_SECURE', '%_LIMIT_SECURE', 'NO_OF_UNSECURE', 'TOTAL_UNSECURE', 
-        '%_LIMIT_UNSECURE', 'TRADE_REF [Yes(1), No(0)]', 'ETR_PLUS [Yes(1), No(0)]', 'ENQUIRY_FI', 'ENQUIRY_NONFI', 'ENQUIRY_LAWYER', 
-        'FICO_SCORE', 'NO_OF_FICO_FACTOR'
-    ]
-    MODIFIED_FEATURE_KEYS=[str(item).replace(" [Yes(1), No(0)]", "").upper() for item in FEATURE_KEYS]
-
     scaler = load(open('files/Scaler3.joblib', 'rb'))
     model = load('files/RandomForestRegressor.joblib')
 
-    # Read CSV file into a Pandas DataFrame
+    # Get feature names from the model
+    FEATURE_KEYS = model.feature_names_in_.tolist()
+
     df = pd.read_csv(csv_file)
 
-    # Initialize an empty DataFrame for the processed data
-    processed_data = pd.DataFrame()
+    if not all(key in df.columns for key in FEATURE_KEYS):
+        missing_keys = [key for key in FEATURE_KEYS if key not in df.columns]
+        raise ValueError(f"Missing columns in CSV: {', '.join(missing_keys)}")
 
-    for index, row in df.iterrows():
-        print('here')
-        try:
-            nan_present = any(pd.isna(element) or element == 'NaN' for element in row)
-            if None in row or nan_present:
-                result = "Incomplete data"
-            else:
-                result = 'Attempt Failed. Try again.'
-                FEATURE_DEFAULTS = {key: 0.0 for key in MODIFIED_FEATURE_KEYS}
-                features = FEATURE_DEFAULTS.copy()
-                features.update(zip(MODIFIED_FEATURE_KEYS, map(float, [str(item).replace(",", "").replace("N", "0").replace("Y", "1") for item in row])))
-                if 'Invalid' not in result:
-                    numerical_values = list(features.values())
-                    scaled_values_2d = scaler.transform(np.array(numerical_values).reshape(1, -1))
-                    result = round(model.predict(scaled_values_2d)[0],4)
+    df['Result'] = df.apply(lambda row: process_row(row, FEATURE_KEYS, scaler, model), axis=1)
 
-            # Add the result to the row
-            row['Result'] = result
+    processed_path = os.path.join(os.getenv('TMP', '/tmp'), "result.csv")
+    df.to_csv(processed_path, index=False)
 
-            # Append the processed row to the DataFrame
-            processed_data = processed_data.append(row, ignore_index=True)
-            processed_path = os.path.join(os.getenv('TMP', '/tmp'), "result.csv")
-            processed_data.to_csv(processed_path, index=False)   
-        except Exception as error:
-            print(f"An error occurred: {error}")
-            # Set result to 'error' in case of any exception
-            row['Result'] = error
-            # Append the row to the DataFrame with the error result
-            processed_data = processed_data.append(row, ignore_index=True)
-            processed_path = os.path.join(os.getenv('TMP', '/tmp'), "result.csv")
-            processed_data.to_csv(processed_path, index=False)     
-    # Return the HTML table
-    return processed_data
+    return df
+
+def process_row(row, feature_keys, scaler, model):
+    try:
+        if row.isnull().any():
+            return "Incomplete data"
+
+        features = {key: float(str(row[key]).replace(",", "").replace("N", "0").replace("Y", "1")) for key in feature_keys}
+        
+        # Create a DataFrame with feature names
+        features_df = pd.DataFrame([features], columns=feature_keys)
+        
+        # Scale the features
+        scaled_features = pd.DataFrame(scaler.transform(features_df), columns=feature_keys)
+        
+        # Make prediction
+        return round(model.predict(scaled_features)[0], 4)
+    except Exception as e:
+        return f"Error: {str(e)}"
 
 @blueprint.route('/download_ctostemplate')
 def download_ctostemplate():
     # Create a string with CSV template content
-    template_content = '''NO_OF_COMPANY,STATUS_ACTIVE,STATUS_EXISTING,STATUS_EXPIRED,STATUS_DISSOLVED,STATUS_NONE,STATUS_STRIKING OFF,STATUS_WINDING UP,STATUS_TERMINATED,POSITION_SOLE PROPRIETOR,POSITION_PARTNER,POSITION_DIRECTOR,POSITION_DIRECTOR  /  SHARE HOLDER,POSITION_SHARE HOLDER,APPLICATION_APPROVED,APPLICATION_PENDING,BORROWER_LIMIT,BORROWER_OUTSTANDING,MIN_DATE_YEAR,FACILITIES_INSTALLMENT,NO_OF_SECURE,TOTAL_SECURE,%_LIMIT_SECURE,NO_OF_UNSECURE,TOTAL_UNSECURE,%_LIMIT_UNSECURE,TRADE_REF [Yes(1)/No(0)],ETR_PLUS [Yes(1)/No(0)],ENQUIRY_FI,ENQUIRY_NONFI,ENQUIRY_LAWYER,FICO_SCORE,NO_OF_FICO_FACTOR'''
+    template_content = '''NO_OF_COMPANY,STATUS_DISSOLVED,STATUS_STRIKING OFF,STATUS_EXISTING,STATUS_WINDING UP,STATUS_NONE,STATUS_TERMINATED,STATUS_EXPIRED,STATUS_ACTIVE,POSITION_PARTNER,POSITION_DIRECTOR,POSITION_SHARE HOLDER,POSITION_SOLE PROPRIETOR,POSITION_DIRECTOR  /  SHARE HOLDER,APPLICATION_APPROVED,APPLICATION_PENDING,BORROWER_LIMIT,BORROWER_OUTSTANDING,MIN_DATE_YEAR,FACILITIES_INSTALLMENT,CONDUCT_OF_ACCOUNT_LAST_12_MONTH,NO_OF_SECURE,TOTAL_SECURE,%_LIMIT_SECURE,NO_OF_UNSECURE,TOTAL_UNSECURE,%_LIMIT_UNSECURE,TRADE_REF,ETR_PLUS,ENQUIRY_FI,ENQUIRY_NONFI,ENQUIRY_LAWYER,FICO_SCORE,NO_OF_FICO_FACTOR'''
 
     # Send the file for download
     return send_file(

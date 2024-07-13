@@ -140,33 +140,37 @@
                 <thead>
                     <tr style="text-align: right;">
                         <th>NO_OF_COMPANY</th>
-                        <th>STATUS_ACTIVE</th>
-                        <th>STATUS_EXISTING</th>
-                        <th>STATUS_EXPIRED</th>
                         <th>STATUS_DISSOLVED</th>
-                        <th>STATUS_NONE</th>
                         <th>STATUS_STRIKING OFF</th>
+                        <th>STATUS_EXISTING</th>
                         <th>STATUS_WINDING UP</th>
+                        <th>STATUS_NONE</th>
                         <th>STATUS_TERMINATED</th>
-                        <th>POSITION_SOLE PROPRIETOR</th>
+                        <th>STATUS_EXPIRED</th>
+                        <th>STATUS_ACTIVE</th>
                         <th>POSITION_PARTNER</th>
+                        <th>POSITION_ALTERNATIVE DIRECTOR</th>
                         <th>POSITION_DIRECTOR</th>
-                        <th>POSITION_DIRECTOR / SHARE HOLDER</th>
                         <th>POSITION_SHARE HOLDER</th>
+                        <th>POSITION_NONE</th>
+                        <th>POSITION_SOLE PROPRIETOR</th>
+                        <th>POSITION_ALTERNATIVE DIRECTOR / SHARE HOLDER</th>
+                        <th>POSITION_DIRECTOR / SHARE HOLDER</th>
                         <th>APPLICATION_APPROVED</th>
                         <th>APPLICATION_PENDING</th>
                         <th>BORROWER_LIMIT</th>
                         <th>BORROWER_OUTSTANDING</th>
                         <th>MIN_DATE_YEAR</th>
                         <th>FACILITIES_INSTALLMENT</th>
+                        <th>CONDUCT_OF_ACCOUNT_LAST_12_MONTH</th>
                         <th>NO_OF_SECURE</th>
                         <th>TOTAL_SECURE</th>
                         <th>%_LIMIT_SECURE</th>
                         <th>NO_OF_UNSECURE</th>
                         <th>TOTAL_UNSECURE</th>
                         <th>%_LIMIT_UNSECURE</th>
-                        <th>TRADE_REF [YES(1)/NO(0)]</th>
-                        <th>ETR_PLUS [YES(1)/NO(0)]</th>
+                        <th>TRADE_REF</th>
+                        <th>ETR_PLUS</th>
                         <th>ENQUIRY_FI</th>
                         <th>ENQUIRY_NONFI</th>
                         <th>ENQUIRY_LAWYER</th>
@@ -177,46 +181,50 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td>1</td>
-                        <td>0</td>
-                        <td>0</td>
-                        <td>0</td>
-                        <td>0</td>
-                        <td>1</td>
-                        <td>0</td>
-                        <td>0</td>
-                        <td>0</td>
-                        <td>1</td>
-                        <td>0</td>
-                        <td>0</td>
-                        <td>0</td>
-                        <td>0</td>
-                        <td>0</td>
-                        <td>0</td>
-                        <td>105800</td>
-                        <td>79369</td>
-                        <td>2008</td>
-                        <td>0</td>
-                        <td>1</td>
-                        <td>77459</td>
-                        <td>74</td>
-                        <td>1</td>
-                        <td>1910</td>
-                        <td>83</td>
-                        <td>0</td>
-                        <td>0</td>
-                        <td>1</td>
-                        <td>0</td>
-                        <td>0</td>
-                        <td>317</td>
-                        <td>4</td>
-                        <td>0.7370</td>
+                        <td>1.0</td>
+                        <td>0.0</td>
+                        <td>0.0</td>
+                        <td>0.0</td>
+                        <td>0.0</td>
+                        <td>1.0</td>
+                        <td>0.0</td>
+                        <td>0.0</td>
+                        <td>0.0</td>
+                        <td>0.0</td>
+                        <td>0.0</td>
+                        <td>0.0</td>
+                        <td>0.0</td>
+                        <td>0.0</td>
+                        <td>1.0</td>
+                        <td>0.0</td>
+                        <td>0.0</td>
+                        <td>0.0</td>
+                        <td>0.0</td>
+                        <td>105800.0</td>
+                        <td>79369.0</td>
+                        <td>2008.0</td>
+                        <td>0.0</td>
+                        <td>2.0</td>
+                        <td>1.0</td>
+                        <td>77459.0</td>
+                        <td>74.0</td>
+                        <td>1.0</td>
+                        <td>1910.0</td>
+                        <td>83.0</td>
+                        <td>N</td>
+                        <td>N</td>
+                        <td>1.0</td>
+                        <td>0.0</td>
+                        <td>0.0</td>
+                        <td>317.0</td>
+                        <td>4.0</td>
+                        <td>0.7599</td>
                     </tr>
                 </tbody>
             </table>
         </div>
     </div>
-  </div>
+</div>
 
   <br>
 
@@ -259,7 +267,6 @@
     }
 
     function uploadCSV() {
-        // Call the function to clear the table and session
         clearTableAndSession();
 
         var formData = new FormData($('#csvUploadForm')[0]);
@@ -275,31 +282,13 @@
             success: function (data) {
                 $('#loadingOverlay').hide();
                 $('#result').html(data.table);
-                $('#result').append('<br><button class="result-button"><a href="{{ url_for("authentication_blueprint.download_processed_csv") }}" download>Download Result</a></button>');
+                $('#result').append('<br><button class="result-button"><a href="/download_processed_csv" download>Download Result</a></button>');
             },
-            error: function (error) {
+            error: function (xhr, status, error) {
                 $('#loadingOverlay').hide();
-                console.log("Error:", error);
-            },
-            complete: function () {
-                console.log('Processing complete.');
+                $('#result').html('<p class="error">Error: ' + xhr.responseJSON.error + '</p>');
             }
         });
-
-        var coll = document.getElementsByClassName("collapsible");
-        var i;
-
-        for (i = 0; i < coll.length; i++) {
-        coll[i].addEventListener("click", function() {
-            this.classList.toggle("active");
-            var content = this.nextElementSibling;
-            if (content.style.display === "block") {
-            content.style.display = "none";
-            } else {
-            content.style.display = "block";
-            }
-        });
-        }
     }
 </script>
 {% endblock javascripts %}
