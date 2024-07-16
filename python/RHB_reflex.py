@@ -27,14 +27,15 @@ def RHB_process_rows(rows,bal, sort):
         if elements:
             elements = [elem for elem in elements if elem != '-']
             if re.match(DATE_REGEX, elements[0])  and re.match(AMOUNT_REGEX, elements[-1][-4:]) and re.match(AMOUNT_REGEX, elements[-2][-3:]):
-                print(elements)
                 # Start of a new transaction
                 test = 1
                 if transaction is not None:
                     data[f"{transaction_number}"] = transaction
                     transaction_number += 1
-
-                balance = float(elements[-1].replace(",", "").replace("+", "").replace("-",""))
+                if elements[-1][-1] == "-":
+                    balance = -float(elements[-1].replace(",", "").replace("+", "").replace("-",""))
+                else:
+                    balance = float(elements[-1].replace(",", "").replace("+", "").replace("-",""))
                 amt = float(elements[-2].replace(",", "").replace("+", "").replace("-",""))
                 description = " ".join(elements[1:-2])  # Join elements as description
                 transaction = {
@@ -65,7 +66,7 @@ def RHB_reflex_main(rows, bal, sort):
     KEYWORDS_TO_REMOVE = ["www.rhbgroup.com"]
     indices_containing = [i for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in KEYWORDS_TO_REMOVE)]
     indices_containing.sort(reverse=True)
-
+    
     for index in indices_containing:
         if 0 <= index < len(rows):
             result_index = RHB_find_next_one(rows, index)
@@ -111,7 +112,6 @@ def RHB_reflex_main(rows, bal, sort):
             month_index = None
         transformed_data.append((balance, month_index))
     bal = transformed_data
-
     data = RHB_process_rows(rows,bal, sort)
 
     df = pd.DataFrame.from_dict(data, orient='index')

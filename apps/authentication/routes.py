@@ -981,7 +981,7 @@ def analysis():
                         page_num += 1
                         text = f'{text} \n{page.extract_text()}'
                 rows = text.split('\n')
-
+                
                 updated_rows = []
                 for x in rows:
                     if x != '' and x != '(cid:3)':         # merely to compact the output
@@ -1010,10 +1010,18 @@ def analysis():
                         balance_match = re.search(r'BALANCE (.+)', entry[0])
                         text = text_match.group(1).strip()
                         balance = balance_match.group(1).strip()
-                        balance = re.sub(r'[^0-9.]', '', balance.replace(',', ''))
+                        
+                        # Check if the balance ends with a negative or positive sign
+                        if balance.endswith('-') or balance.endswith('+'):
+                            sign = balance[-1]
+                            balance = sign + balance[:-1]  # Move the sign to the front
+                        
+                        # Remove any remaining non-numeric characters except the decimal point and signs
+                        balance = re.sub(r'[^0-9.+-]', '', balance.replace(',', ''))
 
                         cleaned_bal.append((text + " Balance " + balance, entry[1]))
                     bal = cleaned_bal
+                    print(bal)
                     df, bal = RHB_main(rows, bal, sort)
                     df_null_date = pd.DataFrame(columns=['DATE', 'DESCRIPTION', 'AMOUNT', 'BALANCE', 'Date2'])
 
@@ -1110,8 +1118,6 @@ def fraud_process():
                 results.append((pagenum, result))
     
     font_data = extract_fonts(file_path)
-    print(font_data)
-    print(bank_selected)
     empty=False
     if bank_selected == "MBB":
         fonts = [font_base for fonts in font_data for font_id, font_base in fonts.items() if font_id.startswith("/F")]

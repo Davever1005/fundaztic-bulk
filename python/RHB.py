@@ -44,7 +44,7 @@ def add_year(my_list):
 def RHB_process_rows(rows,bal, sort):
     DATE_REGEX = r'\w{3}\d{2}\d{2}|\d{2}\w{3}\d{2}'
     AMOUNT_REGEX = r'\.\d{2}|\.\d{2}-|\d{1}\.\d{1}|'
-    KEYWORDS_TO_REMOVE = ["Member of PIDM", "B/F BALANCE", "Protected by PIDM", 'IMPORTANTNOTES', 'B/FBALANCE', 'C/FBALANCE']
+    KEYWORDS_TO_REMOVE = ["Member of PIDM", "B/F BALANCE", "Protected by PIDM", 'IMPORTANTNOTES', 'B/FBALANCE', 'C/FBALANCE', "STATEMENTPERIODRATE-OVERDRAFT/KADARTEMPOHPENYATA-OVERDRAF"]
     data = {}
     transaction_number = 1
     transaction = None
@@ -108,7 +108,7 @@ def RHB_process_rows(rows,bal, sort):
 
 
 def RHB_main(rows, bal, sort):
-    KEYWORDS_TO_REMOVE = ["Member of PIDM", "Protected by PIDM", 'IMPORTANTNOTES', 'MemberofPIDM/AhliPIDM', 'maklumat lanjut.']
+    KEYWORDS_TO_REMOVE = ["Member of PIDM", "Protected by PIDM", 'IMPORTANTNOTES', 'MemberofPIDM/AhliPIDM', 'maklumat lanjut.', "STATEMENTPERIODRATE-OVERDRAFT/KADARTEMPOHPENYATA-OVERDRAF"]
     add_year(rows)
     indices_containing = [i for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in KEYWORDS_TO_REMOVE)]
     indices_containing.sort(reverse=True)
