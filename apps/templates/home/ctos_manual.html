@@ -32,7 +32,7 @@
                         <div class="row mb-4">
                             <!-- Column 1 -->
                             <div class="col-lg-4 col-sm-6">
-                                {% for field in ['NO_OF_COMPANY', 'STATUS_ACTIVE', 'STATUS_EXISTING', 'STATUS_EXPIRED', 'STATUS_DISSOLVED', 'STATUS_NONE', 'STATUS_STRIKING OFF', 'STATUS_WINDING UP', 'STATUS_TERMINATED', 'POSITION_SOLE PROPRIETOR', 'POSITION_PARTNER'] %}
+                                {% for field in ['NO_OF_COMPANY', 'STATUS_ACTIVE', 'STATUS_DISSOLVED', 'STATUS_EXISTING', 'STATUS_TERMINATED', 'STATUS_WINDING UP', 'STATUS_NONE', 'STATUS_EXPIRED', 'STATUS_STRIKING OFF', 'POSITION_DIRECTOR / SHARE HOLDER', 'POSITION_DIRECTOR', 'POSITION_SOLE PROPRIETOR', 'POSITION_SHARE HOLDER', 'POSITION_PARTNER'] %}
                                 <div class="mb-4">
                                     <label for="{{ field }}">{{ field }}</label>
                                     <input type="number" class="form-control" id="{{ field }}" name="{{ field }}" value="{{ form_values[loop.index0] }}" step="any" required>
@@ -41,10 +41,10 @@
                             </div>
                             <!-- Column 2 -->
                             <div class="col-lg-4 col-sm-6">
-                                {% for field in ['POSITION_DIRECTOR', 'POSITION_DIRECTOR  /  SHARE HOLDER', 'POSITION_SHARE HOLDER', 'APPLICATION_APPROVED', 'APPLICATION_PENDING', 'BORROWER_LIMIT', 'BORROWER_OUTSTANDING', 'MIN_DATE_YEAR', 'FACILITIES_INSTALLMENT', 'CONDUCT_OF_ACCOUNT_LAST_12_MONTH', 'NO_OF_SECURE'] %}
+                                {% for field in ['APPLICATION_APPROVED', 'APPLICATION_PENDING', 'BORROWER_LIMIT', 'BORROWER_OUTSTANDING', 'MIN_DATE_YEAR', 'FACILITIES_INSTALLMENT', 'CONDUCT_LAST_12_MONTHS', 'CONDUCT_LAST_9_MONTHS', 'CONDUCT_LAST_6_MONTHS', 'CONDUCT_LAST_3_MONTHS', 'CONDUCT_EARLIEST_3_MONTHS', 'CONDUCT_EARLIEST_6_MONTHS', 'CONDUCT_EARLIEST_9_MONTHS', 'NO_OF_SECURE'] %}
                                 <div class="mb-4">
                                     <label for="{{ field }}">{{ field }}</label>
-                                    <input type="number" class="form-control" id="{{ field }}" name="{{ field }}" value="{{ form_values[loop.index0 + 11] }}" step="any" required>
+                                    <input type="number" class="form-control" id="{{ field }}" name="{{ field }}" value="{{ form_values[loop.index0 + 14] }}" step="any" required>
                                 </div>
                                 {% endfor %}
                             </div>
@@ -53,7 +53,7 @@
                                 {% for field in ['TOTAL_SECURE', '%_LIMIT_SECURE', 'NO_OF_UNSECURE', 'TOTAL_UNSECURE', '%_LIMIT_UNSECURE'] %}
                                 <div class="mb-4">
                                     <label for="{{ field }}">{{ field }}</label>
-                                    <input type="number" class="form-control" id="{{ field }}" name="{{ field }}" value="{{ form_values[loop.index0 + 22] }}" step="any" required>
+                                    <input type="number" class="form-control" id="{{ field }}" name="{{ field }}" value="{{ form_values[loop.index0 + 28] }}" step="any" required>
                                 </div>
                                 {% endfor %}
                                 {% for field in ['TRADE_REF', 'ETR_PLUS'] %}
@@ -61,15 +61,15 @@
                                     <label for="{{ field }}">{{ field }} [Yes(1), No(0)]</label>
                                     <select class="form-control" id="{{ field }}" name="{{ field }}" required>
                                         <option disabled selected value> -- Select an Option -- </option>
-                                        <option value="0" {% if form_values and form_values[loop.index0 + 27] == '0' %}selected{% endif %}>No</option>
-                                        <option value="1" {% if form_values and form_values[loop.index0 + 27] == '1' %}selected{% endif %}>Yes</option>
+                                        <option value="0" {% if form_values and form_values[loop.index0 + 33] == '0' %}selected{% endif %}>No</option>
+                                        <option value="1" {% if form_values and form_values[loop.index0 + 33] == '1' %}selected{% endif %}>Yes</option>
                                     </select>
                                 </div>
                                 {% endfor %}
                                 {% for field in ['ENQUIRY_FI', 'ENQUIRY_NONFI', 'ENQUIRY_LAWYER', 'FICO_SCORE', 'NO_OF_FICO_FACTOR'] %}
                                 <div class="mb-4">
                                     <label for="{{ field }}">{{ field }}</label>
-                                    <input type="number" class="form-control" id="{{ field }}" name="{{ field }}" value="{{ form_values[loop.index0 + 29] }}" step="any" required>
+                                    <input type="number" class="form-control" id="{{ field }}" name="{{ field }}" value="{{ form_values[loop.index0 + 35] }}" step="any" required>
                                 </div>
                                 {% endfor %}
                             </div>

@@ -80,33 +80,22 @@ def ctos_manual():
 
     # Get the correct feature names and order from the model
     FEATURE_KEYS = model.feature_names_in_.tolist()
-
+    
     FEATURE_DEFAULTS = {key: 0.0 for key in FEATURE_KEYS}
-    FEATURE_DEFAULTS.update({'TRADE_REF [Yes(1), No(0)]': 0, 'ETR_PLUS [Yes(1), No(0)]': 0})  # Set appropriate defaults for categorical variables
 
     if request.method == 'POST':
         try:
             # Create a dictionary to store form values
             form_data = {}
             for key in FEATURE_KEYS:
-                # Handle the special cases for TRADE_REF and ETR_PLUS
-                if key in ['TRADE_REF [Yes(1), No(0)]', 'ETR_PLUS [Yes(1), No(0)]']:
-                    form_key = key.split()[0]  # Use 'TRADE_REF' or 'ETR_PLUS' as the form key
-                    value = request.form.get(form_key, FEATURE_DEFAULTS[key])
-                    form_data[key] = int(value)
-                else:
-                    value = request.form.get(key, FEATURE_DEFAULTS[key])
-                    form_data[key] = float(str(value).replace(",", ""))
+                value = request.form.get(key, FEATURE_DEFAULTS[key])
+                form_data[key] = float(str(value).replace(",", ""))
 
             # Create a DataFrame with the correct feature order
             df = pd.DataFrame([form_data])
 
             # Scale the features
             scaled_df = pd.DataFrame(scaler.transform(df), columns=FEATURE_KEYS)
-
-            print(scaled_df)
-
-            scaled_df.to_csv("test.csv")
 
             # Make prediction
             prediction = round(model.predict(scaled_df)[0], 4)
@@ -144,15 +133,14 @@ def ctos_process():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
 def ctos_process_csv(csv_file):
     scaler = load(open('files/Scaler3.joblib', 'rb'))
     model = load('files/RandomForestRegressor.joblib')
 
     # Get feature names from the model
     FEATURE_KEYS = model.feature_names_in_.tolist()
-
     df = pd.read_csv(csv_file)
-
     if not all(key in df.columns for key in FEATURE_KEYS):
         missing_keys = [key for key in FEATURE_KEYS if key not in df.columns]
         raise ValueError(f"Missing columns in CSV: {', '.join(missing_keys)}")
@@ -169,7 +157,7 @@ def process_row(row, feature_keys, scaler, model):
         if row.isnull().any():
             return "Incomplete data"
 
-        features = {key: float(str(row[key]).replace(",", "").replace("N", "0").replace("Y", "1")) for key in feature_keys}
+        features = {key: float(str(row[key]).replace(",", "")) for key in feature_keys}
         
         # Create a DataFrame with feature names
         features_df = pd.DataFrame([features], columns=feature_keys)
@@ -185,7 +173,7 @@ def process_row(row, feature_keys, scaler, model):
 @blueprint.route('/download_ctostemplate')
 def download_ctostemplate():
     # Create a string with CSV template content
-    template_content = '''NO_OF_COMPANY,STATUS_DISSOLVED,STATUS_STRIKING OFF,STATUS_EXISTING,STATUS_WINDING UP,STATUS_NONE,STATUS_TERMINATED,STATUS_EXPIRED,STATUS_ACTIVE,POSITION_PARTNER,POSITION_DIRECTOR,POSITION_SHARE HOLDER,POSITION_SOLE PROPRIETOR,POSITION_DIRECTOR  /  SHARE HOLDER,APPLICATION_APPROVED,APPLICATION_PENDING,BORROWER_LIMIT,BORROWER_OUTSTANDING,MIN_DATE_YEAR,FACILITIES_INSTALLMENT,CONDUCT_OF_ACCOUNT_LAST_12_MONTH,NO_OF_SECURE,TOTAL_SECURE,%_LIMIT_SECURE,NO_OF_UNSECURE,TOTAL_UNSECURE,%_LIMIT_UNSECURE,TRADE_REF,ETR_PLUS,ENQUIRY_FI,ENQUIRY_NONFI,ENQUIRY_LAWYER,FICO_SCORE,NO_OF_FICO_FACTOR'''
+    template_content = '''NO_OF_COMPANY,STATUS_ACTIVE,STATUS_DISSOLVED,STATUS_EXISTING,STATUS_TERMINATED,STATUS_WINDING UP,STATUS_NONE,STATUS_EXPIRED,STATUS_STRIKING OFF,POSITION_DIRECTOR  /  SHARE HOLDER,POSITION_DIRECTOR,POSITION_SOLE PROPRIETOR,POSITION_SHARE HOLDER,POSITION_PARTNER,APPLICATION_APPROVED,APPLICATION_PENDING,BORROWER_LIMIT,BORROWER_OUTSTANDING,MIN_DATE_YEAR,FACILITIES_INSTALLMENT,CONDUCT_LAST_12_MONTHS,CONDUCT_LAST_9_MONTHS,CONDUCT_LAST_6_MONTHS,CONDUCT_LAST_3_MONTHS,CONDUCT_EARLIEST_3_MONTHS,CONDUCT_EARLIEST_6_MONTHS,CONDUCT_EARLIEST_9_MONTHS,NO_OF_SECURE,TOTAL_SECURE,%_LIMIT_SECURE,NO_OF_UNSECURE,TOTAL_UNSECURE,%_LIMIT_UNSECURE,TRADE_REF,ETR_PLUS,ENQUIRY_FI,ENQUIRY_NONFI,ENQUIRY_LAWYER,FICO_SCORE,NO_OF_FICO_FACTOR'''
 
     # Send the file for download
     return send_file(
