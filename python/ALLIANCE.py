@@ -68,5 +68,4 @@ def ALL_main(df_list, sort):
     df['Description'] = df['Description'].str.replace('\n', ' ')
     
     bal = [(x, y) for x, y, _ in bal]
-
     return df, bal

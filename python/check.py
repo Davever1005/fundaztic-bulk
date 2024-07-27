@@ -82,10 +82,9 @@ def check_balance_within_month(df, bal, sort, bank_selected):
         for index, row in df.iterrows():
             # Extract relevant columns
             current_month = row['Month']
-            if prev_month is None and bank_selected!='HLBB':
+            if prev_month is None:
                 find_balance = next((item[0] for item in bal if item[1] == current_month), None)
-                if find_balance:
-                    prev_balance = find_balance
+                prev_balance = find_balance
             amount2 = round(float(row['Amount2']),2)
             current_balance = round(float(row['Balance']),2)
             # Calculate previous balance + amount2

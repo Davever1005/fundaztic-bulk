@@ -3,7 +3,7 @@ import pandas as pd
 
 
 def OCBC_find_next_one(my_list, index):
-    DATE_REGEX = r'\d{2}\w{3}\d{4}'
+    DATE_REGEX = r'\d{2}[-\s]?\w{3}[-\s]?\d{4}'
     AMOUNT_REGEX = r'\.\d{2}'
     BAL_REGEX = r'\.\d{2}|\.\d{2}DR'
     for i in range(index + 1, len(my_list)):
@@ -19,8 +19,45 @@ def OCBC_find_next_one(my_list, index):
 
     return -1
 
+def process_and_filter_bal(bal):
+    date_format = '%d%b%Y'
+    processed_bal = []
+
+    try:
+        for item in bal:
+            try:
+                date_string = ''.join(item[1].split()[:3])
+                # Convert the date string to pandas datetime object
+                date_object = pd.to_datetime(date_string, format=date_format)
+
+                # Extract the month from the pandas datetime object
+                month_only = date_object.month
+
+                amount = item[0].split()[-1]
+                if 'DR' in amount:
+                    if amount == 'DR':
+                        amount = '-' + item[0].split()[-2]
+                    else:
+                        amount = '-' + amount.replace("DR", "")
+                else:
+                    amount = amount.replace(",", "")
+
+                # Only append if month_only is an integer
+                if isinstance(month_only, int):
+                    processed_bal.append((amount, month_only))
+
+            except Exception as e:
+                print(f"Error processing item: {item}. Error: {str(e)}")
+
+        processed_bal = sorted(processed_bal, key=lambda x: x[1])
+        return processed_bal
+
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+        return []
+
 def OCBC_process_rows(rows, bal, sort):
-    DATE_REGEX = r'\d{2}\w{3}\d{4}'
+    DATE_REGEX = r'\d{2}[-\s]?\w{3}[-\s]?\d{4}'
     AMOUNT_REGEX = r'\.\d{2}'
     BAL_REGEX = r'\.\d{2}|\.\d{2}DR'
     KEYWORDS_TO_REMOVE = ["Start submitting your Audit Confirmation Report", "Page"]
@@ -73,7 +110,6 @@ def OCBC_process_rows(rows, bal, sort):
 
 
 def OCBC_main(rows, bal, sort):
-
     KEYWORDS_TO_REMOVE = ["Start submitting your Audit Confirmation Report", "Page"]
 
     indices_containing = [i for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in KEYWORDS_TO_REMOVE)]
@@ -86,34 +122,11 @@ def OCBC_main(rows, bal, sort):
                 del rows[index:result_index]
             else:
                 del rows[index:]
-
-    try:
-        date_format = '%d%b%Y'
-        for i in range(len(bal)):
-            date_string = bal[i][1].split()[0] + bal[i][1].split()[1] + bal[i][1].split()[2]
-
-            # Convert the date string to pandas datetime object
-            date_object = pd.to_datetime(date_string, format=date_format)
-
-            # Extract the month from the pandas datetime object
-            month_only = date_object.month
-
-            if 'DR' in bal[i][0].split()[-1]:
-                if bal[i][0].split()[-1] == 'DR':
-                    bal[i] = ('-' + bal[i][0].split()[-2],month_only)
-                else:
-                    bal[i] = ('-' + bal[i][0].split()[-1].replace("DR", ""),month_only)
-
-            # Create a new tuple with the month
-            bal[i] = (bal[i][0].split()[-1].replace(",", ""), month_only)
-        bal = sorted(bal, key=lambda x: x[1])
-    except Exception as e:
-            pass
-
+    bal = process_and_filter_bal(bal)
+    
     data = OCBC_process_rows(rows, bal, sort)
 
     df = pd.DataFrame.from_dict(data, orient='index')
-
     try:
         if sort == '-1':
             i = 0
@@ -188,9 +201,9 @@ def OCBC_main(rows, bal, sort):
                     previous_balance = row['Balance']
             except Exception as e:
                 print(e)
+
     except Exception as e:
         print(e)
-    
     df['Amount2'] = df.Amt * df.Sign
 
 

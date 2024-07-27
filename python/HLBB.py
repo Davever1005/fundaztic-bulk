@@ -2,12 +2,46 @@ import pdfplumber
 import pandas as pd
 import re
 
+def check_and_fill(df_list):
+    df = pd.concat(df_list, ignore_index=True)
+    AMOUNT_REGEX = r'\.\d{2}'
+    
+    for i in range(1, len(df) - 1):
+        try:
+            # Check if first column is empty string and any of columns 2, 3, 4 match the regex
+            if df.iloc[i, 0] == "" and df.iloc[i, 1] != "Balance from previous statement" and any(isinstance(df.iloc[i, col], str) and 
+                                           re.search(AMOUNT_REGEX, str(df.iloc[i, col])[-3:]) 
+                                           for col in [2, 3, 4]):
+                
+                matching_columns = [col for col in [2, 3, 4] 
+                                    if isinstance(df.iloc[i, col], str) and 
+                                    re.search(AMOUNT_REGEX, str(df.iloc[i, col])[-3:])]
+                
+                if matching_columns:
+                    prev_amt_check = all(pd.isna(df.iloc[i-1, j]) or df.iloc[i-1, j] == "" for j in matching_columns)
+                    next_amt_check = all(pd.isna(df.iloc[i+1, j]) or df.iloc[i+1, j] == "" for j in matching_columns)
+                    prev_date_check = all(df.iloc[i-1, j] != "" for j in [0,1] if pd.notna(df.iloc[i-1, j]))
+                    next_date_check = all(df.iloc[i+1, j] != "" for j in [0,1] if pd.notna(df.iloc[i+1, j]))
+                    
+                    if next_amt_check and next_date_check:
+                        for col in matching_columns:
+                            df.iloc[i+1, col] = df.iloc[i, col]
+                            df.iloc[i, col] = ""
+                    elif prev_amt_check and prev_date_check:
+                        for col in matching_columns:
+                            df.iloc[i-1, col] = df.iloc[i, col]
+                            df.iloc[i, col] = ""
+        
+        except Exception as e:
+            print(f"Error processing row {i}: {str(e)}")
+            print(f"Row data: {df.iloc[i]}")
+    
+    return df
+
 def HLBB_main(df_list, sort):
     DATE_REGEX = r'\d{2}-\d{2}-\d{4}'
     KEYWORDS_TO_REMOVE = ["Hong Leong Bank Berhad", "Total Withdrawals", "Balance from"]
-
-    df = pd.concat(df_list, ignore_index=True)
-
+    df = check_and_fill(df_list)
     df.columns = ['Date', 'Description', 'Deposit', 'Withdrawal', 'Balance']
 
     # Iterate over rows
@@ -28,7 +62,6 @@ def HLBB_main(df_list, sort):
     for index, row in df_with_balance.iterrows():
         if "(" in str(row['Balance']) and ")" in str(row['Balance']):
             df_with_balance.at[index, 'Balance'] = -float(str(row['Balance']).replace("(", "").replace(")", "").replace(",", ""))
-
 
     bal = [(float(str(row['Balance']).replace(',', "")), pd.to_datetime(df_with_balance.at[index + 1, 'Date'], errors='coerce', dayfirst=True).month, index) for index, row in df_with_balance[df_with_balance['Description'].str.contains('Balance from previous statement', na=False)].iterrows()]
     # for i in range(len(bal)):

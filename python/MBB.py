@@ -25,8 +25,8 @@ def add_year(my_list):
     year = None
     for i in range(len(my_list)):
         elements = my_list[i].split()
-        if len(elements)>0:
-            if re.match(r'\d{2}/\d{2}/\d{2}',elements[-1]):
+        if len(elements)>1:
+            if re.match(r'\d{2}/\d{2}/\d{2}',elements[-1]) and elements[-2] == ':':
                 year = elements[-1][-2:]
             elif re.match(DATE_REGEX, elements[0]) and (re.match(BAL_REGEX, elements[-1][-3:]) or re.match(BAL_REGEX, elements[-1][-5:])) and re.match(AMOUNT_REGEX, elements[-2][-4:]):
                 elements[0] = elements[0] + '/' + str(year)
