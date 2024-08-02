@@ -8,7 +8,6 @@ def ALL_main(df_list, sort):
 
     df = pd.concat(df_list, ignore_index=True)
     df.columns = ['Date', 'Description', 'Cheque No.', 'Debit', 'Credit', 'Balance']
-    
     # Iterate over rows
     idx = None
     for index, row in df.iterrows():

@@ -870,12 +870,11 @@ def upload_file():
         file = request.files['file']
         bank_selected = request.form.get('bank')  # Get the selected bank value
         sort = request.form.get('sort')
-        fz = float(request.form.get('FZ'))
 
         if sort == "":
             sort = 1
 
-        if file and bank_selected and sort and fz > 0:
+        if file and bank_selected and sort:
             # Save the uploaded PDF file to the local storage directory
             file_path = os.path.join(os.getenv('TMP', '/tmp'), file.filename)
             print(file_path)
@@ -886,7 +885,6 @@ def upload_file():
             session['file_path'] = file_path
             session['bank_selected'] = bank_selected
             session['sort'] = sort
-            session['FZ'] = fz
 
 
             return redirect(url_for('authentication_blueprint.analysis'))
@@ -916,9 +914,9 @@ def analysis():
         file_path = session.get('file_path')
         bank_selected = session.get('bank_selected')
         sort = session.get('sort')
-        fz = session.get('FZ')
         temp = 1
         begin_bal = 0
+        print(file_path, bank_selected)
         if file_path and bank_selected:
             if bank_selected == 'HLBB':
                 pdf = pdfplumber.open(file_path)
@@ -1086,7 +1084,7 @@ def analysis():
             return render_template('home/dashboard.html', file_path=file_path.replace("\\","").split("/")[-1], table=table_html, num_pages=num_pages, bank_selected=bank_selected, 
                                    current_page=current_page, summary_data=summary_data, chart_data=chart_data, warning_index=warning_index, 
                                    p2p = p2p_indices_list, type_data=type_data, repeat=repeat, top5_amounts= top5_amounts_table, 
-                                   average_ending_balance=average_ending_balance, average_daily_balances=average_daily_balances, FZ=fz, df_null_date=df_null_date_html,
+                                   average_ending_balance=average_ending_balance, average_daily_balances=average_daily_balances, df_null_date=df_null_date_html,
                                     df_null_date_len=len(df_null_date))
 
         # Handle the case where data is not available
@@ -1101,10 +1099,6 @@ def download_annotated():
     annotated_path = os.path.join(os.getenv('TMP', '/tmp'), "annotated.pdf")
     if os.path.exists(annotated_path):
         return send_file(annotated_path, as_attachment=True)
-
-@blueprint.route('/fraud')
-def route_fraud():
-    return render_template('home/fraud.html')
     
 
 @blueprint.route('/fraud_process', methods=['POST'])
