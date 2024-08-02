@@ -5,7 +5,6 @@ import re
 def UOB_main(df_list, sort, temp):
     DATE_REGEX = r'\d{2}-\d{2}-\d{4}'
     KEYWORDS_TO_REMOVE = ["TotalinAccountCurrency",'For Customer', '']
-
     df = pd.concat(df_list, ignore_index=True)
     df.to_csv('test.csv')
     if temp == 1:

@@ -36,6 +36,10 @@
         {{ file_path }}
     </button>
 </div>
+<div>
+    <label for="FZ">FZ installment amount:</label>
+    <input type="text" name="FZ" id="FZ" oninput="updateDSPRatios()">
+</div>
 <div class="row">
     <div class="col-12 mb-4">
         <br>
@@ -96,8 +100,12 @@
                                             </div>
                                             <div>
                                                 {% if average_daily_balances[month] is defined %}
-                                                <div style="text-align: center; font-size: 0.875em;">Average Daily Balance: <b>RM {{ '{:,.2f}'.format(average_daily_balances[month]) }}</b></div>
-                                                <div style="text-align: center; font-size: 0.875em;">DSP ratio: <b>{{ '{:,.2f}'.format(average_daily_balances[month]/FZ) }}</b></div>
+                                                <div style="text-align: center; font-size: 0.875em;">
+                                                    Average Daily Balance: <b>RM <span id="average-daily-balance-{{ month }}">{{ '{:,.2f}'.format(average_daily_balances[month]) }}</span></b>
+                                                </div>
+                                                <div style="text-align: center; font-size: 0.875em;">
+                                                    DSP ratio: <b><span id="dsp-ratio-{{ month }}">-</span></b>
+                                                </div>
                                                 {% endif %}
                                             </div>
                                         </div>
@@ -111,9 +119,10 @@
             </div>
 
             <div class="row">
-                <div style="text-align: center;">Average Ending Balance: RM{{ '{:,.2f}'.format(average_ending_balance)
-                    }}</div>
-                <div style="text-align: center;">DSP ratio: {{ '{:,.2f}'.format(average_ending_balance/FZ) }}</div>
+                <div style="text-align: center;">Average Ending Balance: RM
+                    <span id="average-daily-balance-all">{{ '{:,.2f}'.format(average_ending_balance)}}</span>
+                    </div>
+                <div style="text-align: center;">DSP ratio: <span id="dsp-ratio-all">-</span></div>
                 <br>
                 <br>
             </div>
@@ -149,18 +158,11 @@
                                                 </div>
 
                                                 <div class="modal-body" style="margin-bottom: 0.5rem;">
-                                                    {% for description, transactions in repeat.items() %}
-                                                    <p style="font-size: 0.9rem; margin: 0rem;"><b>Top {{ loop.index
-                                                            }}</b></p>
-                                                    <div>
-                                                        {% for transaction in transactions %}
-                                                        <p style="font-size: 0.75rem; margin: 0rem;">Date: {{
-                                                            transaction.Date }},
-                                                            Description: {{ transaction.Description }},
-                                                            Amount: {{ transaction.Amount }}</p>
-                                                        {% endfor %}
-                                                    </div>
-                                                    <br>
+                                                    {% for count, table in repeat.items() %}
+                                                        <h4>Transactions repeated {{ count }} times:</h4>
+                                                        {{ table|safe }}
+                                                        <br>
+                                                        <br>
                                                     {% endfor %}
                                                 </div>
 
@@ -191,17 +193,7 @@
                                                 </div>
 
                                                 <div class="modal-body" style="margin-bottom: 0.5rem;">
-                                                    {% for index, row in top5_amounts.iterrows() %}
-                                                    <p style="font-size: 0.9rem; margin: 0rem;"><b>Top {{ loop.index
-                                                            }}</b></p>
-                                                    <div>
-                                                        <p style="font-size: 0.75rem; margin: 0rem;">Date: {{
-                                                            row['Date'] }},
-                                                            Description: {{ row['Description'] }},
-                                                            Amount: {{ row['Amount'] }}</p>
-                                                    </div>
-                                                    <br>
-                                                    {% endfor %}
+                                                    {{ top5_amounts|safe }}
                                                 </div>
 
                                                 <div class="modal-footer">
@@ -363,12 +355,38 @@
             </div>
         </div>
     </div>
-
+    <div class="card border-0 shadow">
+        <div class="card-body">
+            <div class="h6 mb-0 text-center" id="meta">
+                <h5 class="py-2"><strong>Metadata</strong></h5>
+                <div class="loading-overlay" id="loadingOverlay1">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card border-0 shadow">
+        <div class="card-body">
+            <div class="h6 mb-0 text-center" id="font">
+                <h5 class="py-2"><strong>Font Detection</strong></h5>
+                <div class="loading-overlay" id="loadingOverlay2">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     {% endblock content %}
 
     <!-- Specific Page JS goes HERE  -->
     {% block javascripts %}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.3/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script>
         // Get the length of df_null_date passed from the backend
         const dfNullDateLen = {{ df_null_date_len }};
@@ -539,7 +557,91 @@
                 });
             }
         }
+        
+        $.ajax({
+            url: "/fraud_process",
+            type: "POST",
+            contentType: false,
+            processData: false,
+            success: function(response) {
+                console.log(response)
+                $('#loadingOverlay').hide();
+                // Handle successful response
+                $('#meta').empty();
+                $('#font').empty();
+                
+                var metadataHTML = '<h5 class="py-2"><strong>Metadata</strong></h5>';
+                for (var key in response.meta) {
+                    metadataHTML += "<div style='font-size: small;'><strong>" + key + ":</strong> " + response.meta[key] + "</div>";
+                }
+                var fontObj = JSON.parse(response.font);
+                var fontHTML = '<h5 class="py-2"><strong>Font Detection</strong></h5>';
+                if (fontObj.page){
+                    fontHTML += "<div>Found different fonts on page <strong>" + fontObj.page +  ":</strong></div> ";
+                    fontHTML += '<iframe style="font-size: small;" src="' + "{{ url_for('authentication_blueprint.preview_file') }}" + '" width="100%" height="550vh" frameborder="0"></iframe>';
+                }
+                else if (fontObj.Warning){
+                    fontHTML += "<div><strong>" + fontObj.Warning +  "</strong></div> ";
+                }
+                else if (fontObj.good){
+                    fontHTML += "<div><strong>" + fontObj.good +  "</strong></div> ";
+                    fontHTML += '<iframe style="font-size: small;" src="' + "{{ url_for('authentication_blueprint.preview_file') }}" + '" width="100%" height="550vh" frameborder="0"></iframe>';
+                }
+                $('#meta').append(metadataHTML);
+                $('#font').append(fontHTML);
+            },
+            error: function(xhr, status, error) {
+                // Handle error
+                console.error(error);
+                alert("Error occurred while uploading PDF.");
+            }
+        });
 
+        // Store the average daily balances
+        const averageDailyBalances = {};
+
+        // Function to update DSP ratios
+        function updateDSPRatios() {
+            const fzInput = document.getElementById('FZ');
+            const fzValue = parseFloat(fzInput.value);
+
+            if (isNaN(fzValue) || fzValue <= 0) {
+                const dspRatioElements = document.querySelectorAll('[id^="dsp-ratio-"]');
+                dspRatioElements.forEach(element => {
+                    const month = element.id.replace('dsp-ratio-', '');
+                    const averageDailyBalance = averageDailyBalances[month];
+                    if (averageDailyBalance !== undefined) {
+                        const dspRatio = averageDailyBalance / fzValue;
+                        element.textContent = '-';
+                    }
+                });
+            }
+
+            const dspRatioElements = document.querySelectorAll('[id^="dsp-ratio-"]');
+            dspRatioElements.forEach(element => {
+                const month = element.id.replace('dsp-ratio-', '');
+                const averageDailyBalance = averageDailyBalances[month];
+                if (averageDailyBalance !== undefined) {
+                    const dspRatio = averageDailyBalance / fzValue;
+                    element.textContent = dspRatio.toFixed(2);
+                }
+            });
+        }
+
+        // Function to initialize average daily balances
+        function initializeAverageDailyBalances() {
+            const averageDailyBalanceElements = document.querySelectorAll('[id^="average-daily-balance-"]');
+            averageDailyBalanceElements.forEach(element => {
+                const month = element.id.replace('average-daily-balance-', '');
+                const value = parseFloat(element.textContent.replace('RM ', '').replace(',', ''));
+                if (!isNaN(value)) {
+                    averageDailyBalances[month] = value;
+                }
+            });
+        }
+
+        // Initialize average daily balances when the page loads
+        document.addEventListener('DOMContentLoaded', initializeAverageDailyBalances);
 
     </script>
     {% endblock javascripts %}

@@ -26,3 +26,4 @@ fuzzywuzzy
 pdfplumber==0.10.2
 pypdf==4.1.0
 pdfminer-six==20221105
+PyPDF2

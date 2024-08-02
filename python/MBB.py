@@ -184,7 +184,6 @@ def MBB_main(rows, bal, sort):
     indices_containing = [i for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in KEYWORDS_TO_REMOVE )]
     indices_containing.sort(reverse=True)
     add_year(rows)
-
     for index in indices_containing:
         if 0 <= index < len(rows):
             result_index = MBB_find_next_one(rows, index)
@@ -192,7 +191,7 @@ def MBB_main(rows, bal, sort):
                 del rows[index:result_index]
             else:
                 del rows[index:]
-
+    print(bal)
     new_bal = []
     for i in range(len(bal)):
         date_string = bal[i][1].split()[0][0:5]

@@ -21,7 +21,7 @@ def check_balance_within_month(df, bal, sort, bank_selected):
                     warning_index.append(int(index))
                 # Update previous balance for the next iteration
                 prev_balance = current_balance
-    elif bank_selected == 'UOB':
+    elif bank_selected == 'UOB' or bank_selected == 'UOB_others':
          go = 0
          prev_month = None
          for index, row in df.iterrows():

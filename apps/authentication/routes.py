@@ -46,6 +46,7 @@ from python.OCBC import OCBC_main
 from python.AM import AM_main
 from python.Islam import ISLAM_main
 from python.UOB import UOB_main
+from python.UOB_others import UOB2_main
 from python.summary import summary_main
 from python.chart import plot_to_html_image
 from python.check import check_balance_within_month
@@ -68,6 +69,8 @@ from pdfminer.pdfparser import PDFParser
 from pdfminer.pdfdocument import PDFDocument
 from python.metadata import metadata
 from datetime import datetime, timedelta
+import ast
+from collections import defaultdict
 
 @blueprint.route('/')
 def route_default():
@@ -949,6 +952,18 @@ def analysis():
                         df_list.append(table_df)
                 df = UOB_main(df_list, 1, temp)
                 df_null_date = pd.DataFrame(columns=['DATE', 'DESCRIPTION', 'AMOUNT', 'BALANCE', 'Date2'])
+            elif bank_selected == 'UOB_others':
+                bal = []
+                pdf = pdfplumber.open(file_path)
+                df_list = []
+                for i in range(len(pdf.pages)):
+                    page = pdf.pages[i]
+                    table = page.extract_table(table_settings={"horizontal_strategy": "text", "vertical_strategy": "explicit", "explicit_vertical_lines": [57,110,165,340,410,480,560]})
+                    if table:
+                        table_df = pd.DataFrame(table[2:])
+                        df_list.append(table_df)
+                df = UOB2_main(df_list, 1, temp)
+                df_null_date = pd.DataFrame(columns=['DATE', 'DESCRIPTION', 'AMOUNT', 'BALANCE', 'Date2'])
             elif bank_selected == 'ALLIANCE':
                 bal = []
                 pdf = pdfplumber.open(file_path)
@@ -980,7 +995,7 @@ def analysis():
                         updated_rows.append(x)
                 rows = updated_rows
                 if bank_selected == "MBB":
-                    bal = [(s, rows[i+1]) for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in  ['BEGINNING BALANCE'])]
+                    bal = [(s, rows[i+1]) for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in  ['BEGINNING BALANCE', 'BEGINNINGBALANCE'])]
                     df, bal, df_null_date = MBB_main(rows,bal, 1)
                 
                 elif bank_selected == "CIMB":
@@ -1009,7 +1024,6 @@ def analysis():
 
                         cleaned_bal.append((text + " Balance " + balance, entry[1]))
                     bal = cleaned_bal
-                    print(bal)
                     df, bal = RHB_main(rows, bal, sort)
                     df_null_date = pd.DataFrame(columns=['DATE', 'DESCRIPTION', 'AMOUNT', 'BALANCE', 'Date2'])
 
@@ -1047,7 +1061,23 @@ def analysis():
             type_data = type(df)
             repeat = find_repeat(final_df)
             df['Amount2'] = pd.to_numeric(df['Amount2'], errors='coerce')
-            top5_amounts = df.loc[df['Amount2'].abs().nlargest(5).index]
+            df_abs = df.copy()
+            df_abs = df_abs.sort_values('Amount2', ascending=False)
+
+            # Get the top 5 rows
+            top5_amounts = df_abs.head(5)
+
+            # Create separate debit and credit columns
+            top5_amounts['Debit'] = np.where(top5_amounts['Amount'].str[-1] == '-', 
+                                            top5_amounts['Amount'].str[:-1], '')
+            top5_amounts['Credit'] = np.where(top5_amounts['Amount'].str[-1] == '+', 
+                                            top5_amounts['Amount'].str[:-1], '')
+
+            # Select and reorder columns
+            columns_to_display = ['Date', 'Description', 'Debit', 'Credit']
+            top5_amounts = top5_amounts[columns_to_display]
+            top5_amounts_table = top5_amounts.to_html(classes='table table-striped table-bordered', index=False)
+
             ending_balances = [entry['ENDING BALANCE'] for entry in summary_data.values()]
             average_ending_balance = sum(ending_balances) / len(ending_balances)
             df_null_date = df_null_date.drop('Date2', axis=1)
@@ -1055,7 +1085,7 @@ def analysis():
             
             return render_template('home/dashboard.html', file_path=file_path.replace("\\","").split("/")[-1], table=table_html, num_pages=num_pages, bank_selected=bank_selected, 
                                    current_page=current_page, summary_data=summary_data, chart_data=chart_data, warning_index=warning_index, 
-                                   p2p = p2p_indices_list, type_data=type_data, repeat=repeat, top5_amounts= top5_amounts, 
+                                   p2p = p2p_indices_list, type_data=type_data, repeat=repeat, top5_amounts= top5_amounts_table, 
                                    average_ending_balance=average_ending_balance, average_daily_balances=average_daily_balances, FZ=fz, df_null_date=df_null_date_html,
                                     df_null_date_len=len(df_null_date))
 
@@ -1075,91 +1105,101 @@ def download_annotated():
 @blueprint.route('/fraud')
 def route_fraud():
     return render_template('home/fraud.html')
+    
 
 @blueprint.route('/fraud_process', methods=['POST'])
 def fraud_process():
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file part'})
+    try:
+        file_path = session.get('file_path')
+        bank_selected = session.get('bank_selected')
+        print(file_path, bank_selected)
+        # Check if the file is empty
+        if file_path == '':
+            return jsonify({'error': 'No selected file'})
 
-    file = request.files['file']
-    bank_selected = request.form.get('bank')
-    
-    # Check if the file is empty
-    if file.filename == '':
-        return jsonify({'error': 'No selected file'})
+        # Process the file as needed
+        # For example, save it to a folder
 
-    # Process the file as needed
-    # For example, save it to a folder
-    file_path = os.path.join(os.getenv('TMP', '/tmp'), "file.pdf")
+        results = []
+        for pagenum, page in enumerate(extract_pages(file_path)):
 
-    file.save(file_path)
+            # Iterate the elements that composed a page
+            for element in page:
 
-    results = []
-    for pagenum, page in enumerate(extract_pages(file_path)):
+                # Check if the element is a text element
+                if isinstance(element, LTTextContainer):
+                    result = text_extraction(element)
+                    results.append((pagenum, result))
+        
+        font_data = extract_fonts(file_path)
+        empty=False
+        if bank_selected == "MBB":
+            fonts = [font_base for fonts in font_data for font_id, font_base in fonts.items() if font_id.startswith("/F")]
+            if len(fonts) < 3:
+                empty = True
+                fonts = ["Tahoma", "NSimSun", "MicrosoftSansSerif"]
+        elif bank_selected == "CIMB":
+            fonts = [font_base for fonts in font_data for font_id, font_base in fonts.items() if font_id.startswith("/F")]
+            if len(fonts) < 3:
+                empty = True
+                fonts = ["Helvetica", "Helvetica-Bold", "Helvetica-Oblique", "Helvetica-BoldOblique"]
+        elif bank_selected == "HLBB":
+            fonts = [font_base for fonts in font_data for font_id, font_base in fonts.items() if font_id.startswith("/F")]
+            if len(fonts) < 3:
+                empty = True
+                fonts = ["Dax-Regular", "Dax-Bold", "Dax-Italic", "Dax-BoldItalic"]
+        elif bank_selected == "BANK ISLAM":
+            fonts = [font_base for fonts in font_data for font_id, font_base in fonts.items() if font_id.startswith("/F")]
+            if len(fonts) < 3:
+                empty = True
+                fonts = ["Helvetica", "Helvetica-Bold", "Helvetica-Oblique", "Helvetica-BoldOblique"]
+        elif bank_selected == "UOB":
+            fonts = [font_base for fonts in font_data for font_id, font_base in fonts.items() if font_id.startswith("/F")]
+            if len(fonts) < 3:
+                empty = True
+                fonts = ["Helvetica", "Helvetica-Bold", "Helvetica-Oblique", "Helvetica-BoldOblique"]
+        elif bank_selected == "UOB_others":
+            fonts = [font_base for fonts in font_data for font_id, font_base in fonts.items() if font_id.startswith("/F") or font_id.startswith("/V")]
+            if len(fonts) < 3:
+                empty = True
+                fonts = ["Helvetica", "Helvetica-Bold", "Helvetica-Oblique", "Helvetica-BoldOblique", "Arial"]
+        elif bank_selected == "RHB":
+            fonts = [font_base for fonts in font_data for font_id, font_base in fonts.items() if font_id.startswith("/F") or font_id.startswith("/V")]
+        elif bank_selected == "ALLIANCE":
+            fonts = [font_base for fonts in font_data for font_id, font_base in fonts.items() if font_id.startswith("/F")]
+            if len(fonts) < 3:
+                empty = True
+                fonts = ["ArialMT", "Arial-BoldMT", "Arial-ItalicMT", "Arial-BoldItalicMT"]
+        elif bank_selected =="PBB" or bank_selected =="OCBC" or bank_selected =="AM BANK":
+            fonts = []
+        else:
+            fonts = [font_base for fonts in font_data for font_id, font_base in fonts.items() if font_id.startswith("/F")]
+        unique_list = list(set(fonts))
+        
+        if len(unique_list) > 1:
+            fraud_json = draw_rectangles(file_path, results, unique_list, empty)
+        elif bank_selected =="PBB" or bank_selected =="OCBC" or bank_selected =="AM BANK":
+            fraud_json = json.dumps({"Warning": "Font detection is currently not available for Public Bank, OCBC and Am bank."})
+        else:
+            fraud_json = json.dumps({"Warning": "The system detects that the PDF has been modified, but cannot pinpoint the modified content. These alterations may not necessarily pertain to changes in the transaction record; they could involve other aspects."})
 
-        # Iterate the elements that composed a page
-        for element in page:
+        meta = metadata(file_path)
+        if len(meta) > 0:
+            meta = [{key: str(value.decode('windows-1252')) if isinstance(value, bytes) else value for key, value in entry.items()} for entry in meta]
+            meta = str(meta[0])
+            # Remove the forward slash before 'False' or 'True'
+            corrected_string = re.sub(r"/'(False|True)'", r"'\1'", meta)
 
-            # Check if the element is a text element
-            if isinstance(element, LTTextContainer):
-                result = text_extraction(element)
-                results.append((pagenum, result))
-    
-    font_data = extract_fonts(file_path)
-    empty=False
-    if bank_selected == "MBB":
-        fonts = [font_base for fonts in font_data for font_id, font_base in fonts.items() if font_id.startswith("/F")]
-        if len(fonts) < 3:
-            empty = True
-            fonts = ["Tahoma", "NSimSun", "MicrosoftSansSerif"]
-    elif bank_selected == "CIMB":
-        fonts = [font_base for fonts in font_data for font_id, font_base in fonts.items() if font_id.startswith("/F")]
-        if len(fonts) < 3:
-            empty = True
-            fonts = ["Helvetica", "Helvetica-Bold", "Helvetica-Oblique", "Helvetica-BoldOblique"]
-    elif bank_selected == "HLBB":
-        fonts = [font_base for fonts in font_data for font_id, font_base in fonts.items() if font_id.startswith("/F")]
-        if len(fonts) < 3:
-            empty = True
-            fonts = ["Dax-Regular", "Dax-Bold", "Dax-Italic", "Dax-BoldItalic"]
-    elif bank_selected == "BANK ISLAM":
-        fonts = [font_base for fonts in font_data for font_id, font_base in fonts.items() if font_id.startswith("/F")]
-        if len(fonts) < 3:
-            empty = True
-            fonts = ["Helvetica", "Helvetica-Bold", "Helvetica-Oblique", "Helvetica-BoldOblique"]
-    elif bank_selected == "UOB":
-        fonts = [font_base for fonts in font_data for font_id, font_base in fonts.items() if font_id.startswith("/F")]
-        if len(fonts) < 3:
-            empty = True
-            fonts = ["Helvetica", "Helvetica-Bold", "Helvetica-Oblique", "Helvetica-BoldOblique"]
-    elif bank_selected == "RHB":
-        fonts = [font_base for fonts in font_data for font_id, font_base in fonts.items() if font_id.startswith("/F") or font_id.startswith("/V")]
-    elif bank_selected == "ALLIANCE":
-        fonts = [font_base for fonts in font_data for font_id, font_base in fonts.items() if font_id.startswith("/F")]
-        if len(fonts) < 3:
-            empty = True
-            fonts = ["ArialMT", "Arial-BoldMT", "Arial-ItalicMT", "Arial-BoldItalicMT"]
-    elif bank_selected =="PBB" or bank_selected =="OCBC" or bank_selected =="AM BANK":
-        fonts = []
-    else:
-        fonts = [font_base for fonts in font_data for font_id, font_base in fonts.items() if font_id.startswith("/F")]
-    unique_list = list(set(fonts))
-    print(unique_list)
-    
-    if len(unique_list) > 1:
-        fraud_json = draw_rectangles(file_path, results, unique_list, empty)
-    elif bank_selected =="PBB" or bank_selected =="OCBC" or bank_selected =="AM BANK":
-        fraud_json = json.dumps({"Warning": "Font detection is currently not available for Public Bank, OCBC and Am bank."})
-    else:
-        fraud_json = json.dumps({"Warning": "The system detects that the PDF has been modified, but cannot pinpoint the modified content. These alterations may not necessarily pertain to changes in the transaction record; they could involve other aspects."})
-
-    meta = metadata(file_path)
-    if len(meta) > 0:
-        meta = [{key: str(value.decode('windows-1252')) if isinstance(value, bytes) else value for key, value in entry.items()} for entry in meta]
-    else:
-        meta = [{'Message': 'No Metadata Found.'}]
-    
-    return jsonify({'meta': meta[0], 'font': fraud_json})
+            # Convert single quotes to double quotes, except within values
+            json_string = re.sub(r"(?<!\\)'([^']+)'(?=:)", r'"\1"', corrected_string)
+            # Parse the string as JSON
+            meta = ast.literal_eval(corrected_string)
+        else:
+            meta = {'Message': 'No Metadata Found.'}
+        return jsonify({'meta': meta, 'font': fraud_json})
+    except Exception as e:
+        print(e)
+        return jsonify({'meta': None, 'font': None})
 
 @blueprint.route('/preview_file')
 def preview_file():

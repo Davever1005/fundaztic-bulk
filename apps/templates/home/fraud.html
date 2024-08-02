@@ -71,6 +71,7 @@
                 <option value="AM BANK">AM BANK</option>
                 <option value="BANK ISLAM">BANK ISLAM</option>
                 <option value="UOB">UOB</option>
+                <option value="UOB_others">UOB_others</option>
                 <option value="ALLIANCE">ALLIANCE</option>
             </select>
             <svg class="icon-info" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16" data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-content="Throughout the file compression, merging, or comment addition processes, the font within the entire bank statement may undergo alterations. Consequently, the system may struggle to pinpoint the modified text and can only recognize that the PDF has been modified.">
@@ -123,7 +124,6 @@
         $.ajax({
             url: "/fraud_process",
             type: "POST",
-            data: formData,
             contentType: false,
             processData: false,
             success: function(response) {
