@@ -1035,7 +1035,7 @@ def analysis():
                     df, bal, df_null_date = OCBC_main(rows, bal, sort)
                     
                 elif bank_selected == "AM BANK":
-                    bal = [(s, rows[i+1]) for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in  ['Baki Bawa Ke Hadapan / Balance b/f', 'Balance Brought Fwd'])]
+                    bal = [(s, rows[i+1]) for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in  ['Baki Bawa Ke Hadapan', 'Balance b/f', 'Balance Brought Fwd'])]
                     print(bal)
                     df, bal, df_null_date = AM_main(rows, bal, sort)
 
@@ -1169,7 +1169,6 @@ def fraud_process():
         else:
             fonts = [font_base for fonts in font_data for font_id, font_base in fonts.items() if font_id.startswith("/F")]
         unique_list = list(set(fonts))
-        
         if len(unique_list) > 1:
             fraud_json = draw_rectangles(file_path, results, unique_list, empty)
         elif bank_selected =="PBB" or bank_selected =="OCBC" or bank_selected =="AM BANK":
@@ -1178,11 +1177,12 @@ def fraud_process():
             fraud_json = json.dumps({"Warning": "The system detects that the PDF has been modified, but cannot pinpoint the modified content. These alterations may not necessarily pertain to changes in the transaction record; they could involve other aspects."})
 
         meta = metadata(file_path)
+        print(meta)
         if len(meta) > 0:
             meta = [{key: str(value.decode('windows-1252')) if isinstance(value, bytes) else value for key, value in entry.items()} for entry in meta]
             meta = str(meta[0])
             # Remove the forward slash before 'False' or 'True'
-            corrected_string = re.sub(r"/'(False|True)'", r"'\1'", meta)
+            corrected_string = re.sub(r"/'(False|True|Unknown)'", r"'\1'", meta)
 
             # Convert single quotes to double quotes, except within values
             json_string = re.sub(r"(?<!\\)'([^']+)'(?=:)", r'"\1"', corrected_string)
