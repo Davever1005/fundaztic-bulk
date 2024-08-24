@@ -934,7 +934,11 @@ def analysis():
                                 split_row_list = split_rows(row)
                                 for split_row in split_row_list:
                                     df_list.append(pd.DataFrame([split_row], columns=table_df.columns))
-                df, bal, df_null_date = HLBB_main(df_list, sort=1)
+                with pdfplumber.open(file_path) as pdf:
+                    alltext = []
+                    for page in pdf.pages:
+                        alltext.extend(page.extract_text().split('\n'))
+                df, bal, df_null_date = HLBB_main(df_list, alltext, sort=1)
             elif bank_selected == 'UOB':
                 bal = []
                 pdf = pdfplumber.open(file_path)
@@ -1040,7 +1044,7 @@ def analysis():
                     df, bal, df_null_date = AM_main(rows, bal, sort)
 
                 elif bank_selected == "BANK ISLAM":
-                    bal = [(s, rows[i+1]) for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in  ['BALB/F'])]
+                    bal = [(s, rows[i+1]) for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in  ['BALB/F', 'BAL B/F'])]
                     df, bal, df_null_date = ISLAM_main(rows, bal, sort)
 
             num_rows_per_page = 15

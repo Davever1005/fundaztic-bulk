@@ -22,16 +22,18 @@ def ISLAM_process_rows(rows, bal, sort):
     DATE_REGEX = r'\d{1,2}/\d{2}/\d{2}'
     AMOUNT_REGEX = r'\.\d{2}'
     BAL_REGEX = r'\.\d{2}'
-    KEYWORDS_TO_REMOVE = ["RINGKASANAKAUN/SUMMARYOFACCOUNT", "Sekiranyaandamendapatisebarangperbezaan"]
+    KEYWORDS_TO_REMOVE = ["RINGKASANAKAUN/SUMMARYOFACCOUNT", "Sekiranyaandamendapatisebarangperbezaan", "Sekiranya anda mendapati sebarang", "RINGKASAN AKAUN / SUMMARY OF ACCOUNT", "BIMB_CA"]
     data = {}
     transaction_number = 1
     transaction = None
     test = 0
     for row in rows:
+        row = re.sub(r'[^\x00-\x7F]+', '', row)
         elements = row.split()  # Split the row into elements
         if elements:
+            print(elements[0])
             if re.match(DATE_REGEX, elements[0])  and re.match(BAL_REGEX, elements[-1][-3:]) and re.match(AMOUNT_REGEX, elements[-2][-3:]):
-                # Start of a new transaction
+                print(elements[0])
                 test = 1
                 if transaction is not None:
                     data[f"{transaction_number}"] = transaction
@@ -78,7 +80,7 @@ def ISLAM_process_rows(rows, bal, sort):
 
 def ISLAM_main(rows, bal, sort):
 
-    KEYWORDS_TO_REMOVE = ["RINGKASANAKAUN/SUMMARYOFACCOUNT", "Sekiranyaandamendapatisebarangperbezaan"]
+    KEYWORDS_TO_REMOVE = ["RINGKASANAKAUN/SUMMARYOFACCOUNT", "Sekiranyaandamendapatisebarangperbezaan", "Sekiranya anda mendapati sebarang", "RINGKASAN AKAUN / SUMMARY OF ACCOUNT", "BIMB_CA"]
 
     indices_containing = [i for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in KEYWORDS_TO_REMOVE)]
     indices_containing.sort(reverse=True)
@@ -108,10 +110,10 @@ def ISLAM_main(rows, bal, sort):
     except Exception as e:
             print(e)
     data = ISLAM_process_rows(rows, bal, sort)
-    
+    print(bal)
 
     df = pd.DataFrame.from_dict(data, orient='index')
-
+    print(df)
     if sort == '-1':
         i = 0
         previous_balance = None
