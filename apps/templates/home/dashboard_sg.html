@@ -101,7 +101,7 @@
                                             <div>
                                                 {% if average_daily_balances[month] is defined %}
                                                 <div style="text-align: center; font-size: 0.875em;">
-                                                    Average Daily Balance: <b>RM <span id="average-daily-balance-{{ month }}">{{ '{:,.2f}'.format(average_daily_balances[month]) }}</span></b>
+                                                    Average Daily Balance: <b>SGD <span id="average-daily-balance-{{ month }}">{{ '{:,.2f}'.format(average_daily_balances[month]) }}</span></b>
                                                 </div>
                                                 <div style="text-align: center; font-size: 0.875em;">
                                                     DSP ratio: <b><span id="dsp-ratio-{{ month }}">-</span></b>
@@ -119,7 +119,7 @@
             </div>
 
             <div class="row">
-                <div style="text-align: center;">Average Ending Balance: RM
+                <div style="text-align: center;">Average Ending Balance: SGD
                     <span id="average-daily-balance-all">{{ '{:,.2f}'.format(average_ending_balance)}}</span>
                     </div>
                 <div style="text-align: center;">DSP ratio: <span id="dsp-ratio-all">-</span></div>
@@ -274,71 +274,9 @@
                                 </span>
                             </div>
                         </div>
-                        <div class="d-flex align-items-center justify-content-between border-bottom py-3">
-                            <div>
-                                <div class="h6 mb-0 d-flex align-items-center">
-                                    <svg class="icon icon-xs text-gray-500 me-2" fill="currentColor" viewBox="0 0 20 20"
-                                        xmlns="http://www.w3.org/2000/svg">
-                                        <path fill-rule="evenodd"
-                                            d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z"
-                                            clip-rule="evenodd"></path>
-                                    </svg>
-                                    P2P Transactions
-                                </div>
-                            </div>
-                            <div>
-                                <span style="background-color: bisque;">
-                                    {{ p2p|length }}
-                                    <svg class="icon icon-xs text-gray-500 ms-1" fill="currentColor" viewBox="0 0 20 20"
-                                        xmlns="http://www.w3.org/2000/svg">
-                                        <path fill-rule="evenodd"
-                                            d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z"
-                                            clip-rule="evenodd"></path>
-                                    </svg>
-                                </span>
-                            </div>
-                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-12 px-0 mb-4">
-                <div class="card border-0 shadow">
-                    <div class="card-body">
-                        <table class="type">
-                            <tbody>
-                                {% for type_name, data in type_data.items() %}
-                                <tr>
-                                    <td class="col-8">
-                                        <div class="d-block" style="font-size: 0.7rem;">
-                                            <b>{{ type_name }}</b>
-                                        </div>
-                                        <div class="d-block" style="font-size: 0.6rem;">
-                                            <small>{{data.count}} Transactions</small>
-                                        </div>
-                                    </td>
-                                    <td class="col-2" style="text-align: right; color:springgreen; font-size: 0.7rem;">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                                            fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
-                                            <path
-                                                d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4" />
-                                        </svg>
-                                        {{ '{:,.2f}'.format(data.credit_sum) }}
-
-                                    </td>
-                                    <td class="col-2" style="text-align: right; color: hotpink; font-size: 0.7rem;">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                                            fill="currentColor" class="bi bi-dash" viewBox="0 0 16 16">
-                                            <path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8" />
-                                        </svg>
-                                        {{ '{:,.2f}'.format(data.debit_sum) }}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+            </div>  
         </div>
     </div>
     <div class="row">
@@ -401,9 +339,7 @@
             var rows = table.querySelectorAll('#' + tableId + ' tbody tr');
             var warning_index = {{ warning_index| tojson | safe
         }};
-        var p2p_index = {{ p2p| tojson | safe }};
         var pagesWithWarnings = [];
-        var pagesWithP2P = [];
 
         // Calculate total number of pages
         var totalPages = Math.ceil(rows.length / 15);
@@ -419,14 +355,11 @@
                 if (warning_index.includes(j)) {
                     pagesWithWarnings.push(i);
                     break; // Once a warning row is found on this page, move to the next page
-                } else if (p2p_index.includes(j)) {
-                    pagesWithP2P.push(i);
-                    break;
                 }
             }
         }
 
-        return { pagesWithWarnings: pagesWithWarnings, pagesWithP2P: pagesWithP2P };
+        return { pagesWithWarnings: pagesWithWarnings };
     }
 
 
@@ -439,7 +372,6 @@
             var endIndex = startIndex + 15;
             var warning_index = {{ warning_index| tojson | safe
         }};
-        var p2p_index = {{ p2p| tojson | safe }};
         paginationElement.style.display = 'flex';
         // Adjust endIndex for the last page
         endIndex = Math.min(endIndex, rows.length);
@@ -450,9 +382,6 @@
                 if (warning_index.includes(index)) {
                     row.classList.add("highlighted-red");
                 }
-                if (p2p_index.includes(index)) {
-                    row.classList.add("highlighted-bisque");
-                }
             } else {
                 row.style.display = 'none';
             }
@@ -460,7 +389,6 @@
 
         var pageData = getPageWithWarningsP2P();
         var pagesWithWarnings = pageData.pagesWithWarnings;
-        var pagesWithP2P = pageData.pagesWithP2P;
 
         // Update active page styles
         var pageLinks = document.querySelectorAll('.page-link');
@@ -473,8 +401,6 @@
 
             if (pagesWithWarnings.includes(parseInt(link.textContent.trim()))) {
                 link.classList.add('fault-page');
-            } else if (pagesWithP2P.includes(parseInt(link.textContent.trim()))) {
-                link.classList.add('p2p-page');
             }
         });
     }
@@ -559,7 +485,7 @@
         }
         
         $.ajax({
-            url: "/fraud_process",
+            url: "/fraud_process_sg",
             type: "POST",
             contentType: false,
             processData: false,
@@ -632,7 +558,7 @@
             const averageDailyBalanceElements = document.querySelectorAll('[id^="average-daily-balance-"]');
             averageDailyBalanceElements.forEach(element => {
                 const month = element.id.replace('average-daily-balance-', '');
-                const value = parseFloat(element.textContent.replace('RM ', '').replace(',', ''));
+                const value = parseFloat(element.textContent.replace('SGD ', '').replace(',', ''));
                 if (!isNaN(value)) {
                     averageDailyBalances[month] = value;
                 }

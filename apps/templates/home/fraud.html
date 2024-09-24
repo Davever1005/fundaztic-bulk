@@ -141,14 +141,14 @@
                 var fontHTML = '<h5 class="py-2"><strong>Font Detection</strong></h5>';
                 if (fontObj.page){
                     fontHTML += "<div>Found different fonts on page <strong>" + fontObj.page +  ":</strong></div> ";
-                    fontHTML += '<iframe style="font-size: small;" src="' + "{{ url_for('authentication_blueprint.preview_file') }}" + '" width="100%" height="550vh" frameborder="0"></iframe>';
+                    fontHTML += '<iframe style="font-size: small;" src="' + "{{ url_for('home_blueprint.preview_file') }}" + '" width="100%" height="550vh" frameborder="0"></iframe>';
                 }
                 else if (fontObj.Warning){
                     fontHTML += "<div><strong>" + fontObj.Warning +  "</strong></div> ";
                 }
                 else if (fontObj.good){
                     fontHTML += "<div><strong>" + fontObj.good +  "</strong></div> ";
-                    fontHTML += '<iframe style="font-size: small;" src="' + "{{ url_for('authentication_blueprint.preview_file') }}" + '" width="100%" height="550vh" frameborder="0"></iframe>';
+                    fontHTML += '<iframe style="font-size: small;" src="' + "{{ url_for('home_blueprint.preview_file') }}" + '" width="100%" height="550vh" frameborder="0"></iframe>';
                 }
                 $('#meta').append(metadataHTML);
                 $('#font').append(fontHTML);
@@ -156,7 +156,6 @@
             error: function(xhr, status, error) {
                 // Handle error
                 console.error(error);
-                alert("Error occurred while uploading PDF.");
             }
         });
     }

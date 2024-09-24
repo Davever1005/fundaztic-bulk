@@ -6,7 +6,6 @@ def UOB_main(df_list, sort, temp):
     DATE_REGEX = r'\d{2}-\d{2}-\d{4}'
     KEYWORDS_TO_REMOVE = ["TotalinAccountCurrency",'For Customer', '']
     df = pd.concat(df_list, ignore_index=True)
-    df.to_csv('test.csv')
     if temp == 1:
         df.columns = ['Date', 'Transaction Date/Time', 'Description', 'Deposit', 'Withdrawal', 'Balance']
     else:
@@ -99,7 +98,6 @@ def UOB_main(df_list, sort, temp):
 
     # Drop rows where the first element is not a date
     df = df[df['Date2'].notna() & (df['Deposit'] != "") & (df['Withdrawal'] != "") & (df['Balance'] != "")]
-    df.to_csv('test3.csv')
     df = df.reset_index(drop=True)
     df['Month'] = df['Date2'].dt.month
     df['Idx'] = df.index

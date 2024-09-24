@@ -63,6 +63,7 @@ def draw_rectangles(pdf_path, results, unique_list, empty):
                     line_formats[idx] = font.split('+')[1]
 
         if any(font not in unique_list for font in line_formats):
+            print(result)
             fraud.append(result[0] + 1)
             # Draw a rectangle for each line of text
             for bbox in line_bbox:

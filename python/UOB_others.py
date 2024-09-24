@@ -41,7 +41,6 @@ def UOB2_main(df_list, sort, temp):
     df = pd.concat(df_list, ignore_index=True)
     df = add_year(df)
     df.columns = ['Date', 'Transaction Date/Time', 'Description', 'Withdrawal', 'Deposit', 'Balance']
-    df.to_csv('test2.csv')
     # df['Date2'].fillna(pd.to_datetime(df['Date'], errors='coerce', format='%d/%m'), inplace=True)
     # df['Date2'].fillna(pd.to_datetime(df['Date'], errors='coerce', format='%d/%m/%y'), inplace=True)
 

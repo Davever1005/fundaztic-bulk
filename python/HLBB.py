@@ -102,7 +102,6 @@ def HLBB_main(df_list, alltext, sort):
                     print("Value to find not found.")
     #####
     df.columns = ['Date', 'Description', 'Deposit', 'Withdrawal', 'Balance']
-    df.to_csv('test.csv')
     # Iterate over rows
     idx = None
     for index, row in df.iterrows():

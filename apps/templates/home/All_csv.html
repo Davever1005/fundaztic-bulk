@@ -71,7 +71,7 @@
       <div class="card-body">
         <div class="download-template">
             <button class="result-button">
-                <a href="{{ url_for('authentication_blueprint.download_template') }}" download>Download CSV Template</a>
+                <a href="{{ url_for('home_blueprint.download_template') }}" download>Download CSV Template</a>
             </button>
         </div>
         <br>
@@ -352,7 +352,7 @@
             success: function (data) {
                 $('#loadingOverlay').hide();
                 $('#result').html(data.table);
-                $('#result').append('<br><button class="result-button"><a href="{{ url_for("authentication_blueprint.download_processed_csv") }}" download>Download Result</a></button>');
+                $('#result').append('<br><button class="result-button"><a href="{{ url_for("home_blueprint.download_processed_csv") }}" download>Download Result</a></button>');
             },
             error: function (error) {
                 $('#loadingOverlay').hide();

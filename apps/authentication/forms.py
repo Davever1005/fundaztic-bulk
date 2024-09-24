@@ -4,14 +4,14 @@ Copyright (c) 2019 - present AppSeed.us
 """
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField
+from wtforms import TextField, PasswordField
 from wtforms.validators import Email, DataRequired
 
 # login and registration
 
 
 class LoginForm(FlaskForm):
-    username = StringField('Username',
+    username = TextField('Username',
                          id='username_login',
                          validators=[DataRequired()])
     password = PasswordField('Password',
@@ -20,10 +20,10 @@ class LoginForm(FlaskForm):
 
 
 class CreateAccountForm(FlaskForm):
-    username = StringField('Username',
+    username = TextField('Username',
                          id='username_create',
                          validators=[DataRequired()])
-    email = StringField('Email',
+    email = TextField('Email',
                       id='email_create',
                       validators=[DataRequired(), Email()])
     password = PasswordField('Password',

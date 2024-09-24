@@ -59,9 +59,9 @@
 </style>
 {% endblock stylesheets %}
 {% block content %}
-<form method="POST" action="{{ url_for('home_blueprint.upload_file') }}" enctype="multipart/form-data">
+<form method="POST" action="{{ url_for('home_blueprint.upload_file_sg') }}" enctype="multipart/form-data">
 
-    <h1>Bank Statement Analysis (MY)</h1>
+    <h1>Bank Statement Analysis (SG)</h1>
 
     <label for="file">Select Bank Statement file:</label>
     <input type="file" id="file" name="file" accept=".pdf" required>
@@ -69,24 +69,10 @@
     <label for="bank">Select bank:</label>
     <select id="bank" name="bank" onchange="toggleDateSort()">
         <option default value="">-- Select an Option --</option>
-        <option value="MBB">MBB</option>
-        <option value="CIMB">CIMB</option>
-        <option value="HLBB">HLBB</option>
-        <option value="PBB">PBB</option>
-        <option value="RHB">RHB</option>
-        <option value="RHB-reflex">RHB-reflex</option>
-        <option value="OCBC">OCBC</option>
-        <option value="AM BANK">AM BANK</option>
-        <option value="BANK ISLAM">BANK ISLAM</option>
         <option value="UOB">UOB</option>
-        <option value="UOB_others">UOB_others</option>
-        <option value="ALLIANCE">ALLIANCE</option>
-    </select>
-
-    <label for="sort">Date order:</label>
-    <select id="sort" name="sort">
-        <option default value="1">Dates are in positive order (starting from the 1st)</option>
-        <option value="-1">Dates are in reverse order (starting from the 31st)</option>
+        <option value="OCBC">OCBC</option>
+        <option value="DBS">DBS_AccountStatement</option>
+        <option value="DBS2">DBS_AccountDetails</option>
     </select>
 
     <button type="submit">Upload and Analyze</button>

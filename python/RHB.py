@@ -43,7 +43,7 @@ def add_year(my_list):
 
 def RHB_process_rows(rows,bal, sort):
     DATE_REGEX = r'\w{3}\d{2}\d{2}|\d{2}\w{3}\d{2}'
-    AMOUNT_REGEX = r'\.\d{2}|\.\d{2}-|\d{1}\.\d{1}|'
+    AMOUNT_REGEX = r'\.\d{2}|\.\d{2}-|\d{1}\.\d{1}'
     KEYWORDS_TO_REMOVE = ["Member of PIDM", "B/F BALANCE", "Protected by PIDM", 'IMPORTANTNOTES', 'B/FBALANCE', 'C/FBALANCE', "STATEMENTPERIODRATE-OVERDRAFT/KADARTEMPOHPENYATA-OVERDRAF"]
     data = {}
     transaction_number = 1
@@ -53,7 +53,7 @@ def RHB_process_rows(rows,bal, sort):
     b = 0
     date_idx = None
     months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
-
+    
     for row in rows:
         elements = row.split()  # Split the row into elements
         date_idx = None
@@ -62,6 +62,7 @@ def RHB_process_rows(rows,bal, sort):
         if elements:
             if len(elements) > 2:
                 if re.match(DATE_REGEX, elements[0][0:7]) and (re.match(AMOUNT_REGEX, elements[-1][-3:]) or re.match(AMOUNT_REGEX, elements[-1][-4:])) and re.match(AMOUNT_REGEX, elements[-2][-3:]):
+                    print(elements)
                     # Start of a new transaction
                     test = 1
                     if transaction is not None:
@@ -112,7 +113,7 @@ def RHB_main(rows, bal, sort):
     add_year(rows)
     indices_containing = [i for i, s in enumerate(rows) if any(keyword.lower() in s.lower() for keyword in KEYWORDS_TO_REMOVE)]
     indices_containing.sort(reverse=True)
-
+    print(rows)
     for index in indices_containing:
         if 0 <= index < len(rows):
             result_index = RHB_find_next_one(rows, index)
@@ -163,7 +164,6 @@ def RHB_main(rows, bal, sort):
     data = RHB_process_rows(rows,bal, sort)
 
     df = pd.DataFrame.from_dict(data, orient='index')
-
     if sort == '-1':
         previous_balance = None
         df['Idx'] = df.index

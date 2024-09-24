@@ -12,7 +12,6 @@ def summary_main(df, bal, bank_selected, begin_bal):
             begin = group.iloc[0]['Balance'] - group.iloc[0]['Amount2']
         else:
             begin = float(next((item[0] for item in bal if item[1] == group.iloc[0]['Month']), 0))
-            print(begin)
         cr_count = group[group['Sign'] == 1]['Amount2'].count()
         cr_sum = group[group['Sign'] == 1]['Amount2'].sum()
         db_count = group[group['Sign'] == -1]['Amount2'].count()
